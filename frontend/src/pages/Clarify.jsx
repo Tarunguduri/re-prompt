@@ -137,33 +137,38 @@ export default function Clarify({ sessionData, questions, progress, round, onSub
                                 exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}
                                 onSubmit={handleSubmit} className="space-y-4"
                             >
-                                {isLoading && questions.length === 0 ? (
+                                {isLoading && (!questions || questions.length === 0) ? (
                                     <div className="flex items-center justify-center gap-3 py-10">
                                         <Loader2 size={20} className="animate-spin" style={{ color: cfg.color }} />
                                         <span className="mono text-xs uppercase tracking-widest text-[rgba(237,232,222,0.4)]">Processing…</span>
                                     </div>
-                                ) : questions.map((q, i) => (
-                                    <motion.div
-                                        key={q.field}
-                                        initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.07 }}
-                                        className="glass border border-[rgba(255,255,255,0.09)] p-5 transition-all duration-200 hover:border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]"
-                                        data-hover
-                                    >
-                                        <label className="block mono text-[10px] uppercase tracking-[0.2em] mb-3" style={{ color: cfg.color }}>
-                                            /{q.field.replace(/_/g, '-')}
-                                        </label>
-                                        <p className="text-sm font-medium mb-4 leading-relaxed">{q.question}</p>
-                                        <textarea
-                                            id={`field-${q.field}`}
-                                            value={answers[q.field] || ''}
-                                            onChange={e => setAnswers(p => ({ ...p, [q.field]: e.target.value }))}
-                                            placeholder="Your answer..."
-                                            rows={3}
-                                            className="nb-input w-full px-4 py-3 text-sm resize-none leading-relaxed"
-                                        />
-                                    </motion.div>
-                                ))}
+                                ) : (questions || []).map((q, i) => {
+                                    const field = typeof q === 'object' ? q.field : `q${i}`;
+                                    const questionText = typeof q === 'object' ? q.question : q;
+
+                                    return (
+                                        <motion.div
+                                            key={field}
+                                            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: i * 0.07 }}
+                                            className="glass border border-[rgba(255,255,255,0.09)] p-5 transition-all duration-200 hover:border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]"
+                                            data-hover
+                                        >
+                                            <label className="block mono text-[10px] uppercase tracking-[0.2em] mb-3" style={{ color: cfg.color }}>
+                                                /{field.replace(/_/g, '-')}
+                                            </label>
+                                            <p className="text-sm font-medium mb-4 leading-relaxed">{questionText}</p>
+                                            <textarea
+                                                id={`field-${field}`}
+                                                value={answers[questionText] || ''}
+                                                onChange={e => setAnswers(p => ({ ...p, [questionText]: e.target.value }))}
+                                                placeholder="Your answer..."
+                                                rows={3}
+                                                className="nb-input w-full px-4 py-3 text-sm resize-none leading-relaxed"
+                                            />
+                                        </motion.div>
+                                    );
+                                })}
 
                                 {questions.length > 0 && (
                                     <MagneticBtn

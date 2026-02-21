@@ -22,37 +22,21 @@ export default function App() {
   const [result, setResult] = useState(null);
 
   // ── Step 1: Analyze input ─────────────────────────────────────────────────
-  const handleSubmit = useCallback((userInput) => {
+  const handleSubmit = useCallback(async (userInput) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = engineAnalyze(userInput);
+      const data = await engineAnalyze(userInput);
       setSessionData(data);
-      setQuestions(data.questions || []);
-      setProgress(data.progress || 0);
-      setRound(1);
-      setIsCompleted(data.questions?.length === 0);
-      setStep(STEP.CLARIFYING);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
 
-  // ── Step 2: Submit clarification answers ──────────────────────────────────
-  const handleSubmitAnswers = useCallback((answers) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = engineClarify(answers);
-      setProgress(data.progress || 0);
-      setRound(r => r + 1);
-      if (data.completed) {
-        setIsCompleted(true);
-        setQuestions([]);
+      // Handle fallback/clarification if required
+      if (data.clarification_required || data.clarification_questions) {
+        setQuestions(data.clarification_questions || data.questions || []);
+        setStep(STEP.CLARIFYING);
       } else {
-        setQuestions(data.questions || []);
+        // If it's already a full spec, skip to results
+        setResult(data);
+        setStep(STEP.RESULTS);
       }
     } catch (err) {
       setError(err.message);
@@ -61,13 +45,28 @@ export default function App() {
     }
   }, []);
 
+  // ── Step 2: Submit clarification answers ──────────────────────────────────
+  const handleSubmitAnswers = useCallback(async (answers) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await engineClarify(answers);
+      setResult(data);
+      setStep(STEP.RESULTS);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // ── Step 3: Generate prompts ───────────────────────────────────────────────
-  const handleGenerate = useCallback(() => {
+  const handleGenerate = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     setStep(STEP.RESULTS);
     try {
-      const data = engineGenerate();
+      const data = await engineGenerate();
       setResult(data);
     } catch (err) {
       setError(err.message);

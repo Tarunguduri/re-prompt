@@ -307,33 +307,41 @@ function logRequest(string $ip, int $inputLen, string $status): void {
 /**
  * Calls the Groq API with mode-specific specialized prompts.
  */
+/**
+ * Calls the Groq API with Re-Prompt v2 "Structured Reasoning" protocols.
+ */
 function callGroq(string $text, string $mode, array $answers): ?string {
-    if ($mode === 'clarify') {
-        $systemPrompt = 'You are the RePrompt Expert Consultant. '
-            . 'Your goal is to analyze a user vision and ask critical questions to refine it. '
-            . 'Be precise, professional, and identify architectural or conceptual gaps. '
-            . 'Respond ONLY with a valid JSON object. '
-            . 'The JSON must match this exact schema: '
-            . '{"summary": "Short professional summary", "clarification_questions": ["Q1", "Q2", "Q3"]}';
-        $userPrompt = 'Analyze this vision and provide 3-5 clarification questions: ' . $text;
+    if ($mode === 'clarify' || empty($answers)) {
+        // Mode 1: Extraction & Clarification
+        $systemPrompt = "You are the Re-Prompt v2 Clarification Engine. "
+            . "Analyze the user vision and return ONLY JSON. "
+            . "If input is too vague, return {\"clarification_required\": true, \"questions\": [string]}. "
+            . "Otherwise, provide a summary and 3-5 high-impact questions.";
+        $userPrompt = "VISION: $text\n\nTask: Extract intent and identify architectural gaps.";
     } else {
+        // Mode 2: Senior Architect Structured Reasoning
         $answerText = '';
-        foreach ($answers as $q => $a) {
-            $answerText .= "Question: $q\nAnswer: $a\n\n";
-        }
-        $systemPrompt = 'You are the RePrompt Expert Prompt Engineer. '
-            . 'Your goal is to transform a raw vision into a high-fidelity system prompt system. '
-            . 'CRITICAL: The platform_prompts (chatgpt, midjourney, webflow) MUST retain ALL technical details, business goals, and integration requirements from the user vision and the Master Prompt. '
-            . 'DO NOT use generic templates. Detail loss is unacceptable. '
-            . 'The chatgpt prompt must be a comprehensive expansion—incorporate every feature mentioned (e.g., shipping, SEO, security, framework). '
-            . 'The midjourney prompt must capture the specific aesthetic and material details provided. '
-            . 'The webflow prompt must outline the exact technical UI/UX structure including complex functional requirements. '
-            . 'Respond ONLY with a valid JSON object. '
-            . 'The JSON must match this exact schema: '
-            . '{"master_prompt": "Exhaustive, expert-level system prompt", "platform_prompts": {"chatgpt": "..", "midjourney": "..", "webflow": ".."}, "suggested_action": "Specific next steps"}';
-        $userPrompt = "INITIAL VISION: $text\n\n"
-            . "CLARIFICATION CONTEXT (These are the most important details):\n$answerText\n\n"
-            . "TASK: Combine the vision and context into a singular 'Master Prompt'. Then, derive the 'platform_prompts' ensuring they are deeply and obviously connected to the specific details provided above.";
+        foreach ($answers as $q => $a) { $answerText .= "Q: $q\nA: $a\n\n"; }
+        
+        $systemPrompt = "You are the Re-Prompt v2 Senior AI Systems Architect.\n"
+            . "OBJECTIVE: Transform vision into a machine-validated specification.\n"
+            . "RULES:\n"
+            . "1. ALWAYS OUTPUT VALID JSON (No prose).\n"
+            . "2. DOMAIN CONSTRAINT: Do not invent features outside logically implied domain.\n"
+            . "3. TRACEABILITY: Map every feature to user input.\n"
+            . "SCHEMA:\n"
+            . "{\n"
+            . "  \"refined_problem_statement\": \"\",\n"
+            . "  \"identified_missing_dimensions\": [],\n"
+            . "  \"assumptions_made\": [],\n"
+            . "  \"core_features\": [{\"name\": \"\", \"description\": \"\", \"trace_to_input\": [], \"justification\": \"\"}],\n"
+            . "  \"non_functional_requirements\": [],\n"
+            . "  \"technical_architecture\": {\"frontend\": \"\", \"backend\": \"\", \"ai_components\": \"\", \"data_storage\": \"\"},\n"
+            . "  \"risk_analysis\": [],\n"
+            . "  \"domain_validation\": {\"irrelevant_features_detected\": [], \"domain_consistency_score\": 0-100},\n"
+            . "  \"confidence_score\": 0-100\n"
+            . "}";
+        $userPrompt = "INITIAL VISION: $text\n\nCONTEXT:\n$answerText\n\nTASK: Generate the specification.";
     }
 
     $payload = json_encode([
@@ -342,8 +350,9 @@ function callGroq(string $text, string $mode, array $answers): ?string {
             ['role' => 'system', 'content' => $systemPrompt],
             ['role' => 'user',   'content' => $userPrompt],
         ],
-        'temperature' => 0.4,
-        'max_tokens'  => 1500,
+        'temperature' => 0, // Deterministic logic for v2
+        'max_tokens'  => 2000,
+        'response_format' => ['type' => 'json_object'] // Ensure JSON mode
     ]);
 
     $ch = curl_init(GROQ_ENDPOINT);
@@ -351,13 +360,11 @@ function callGroq(string $text, string $mode, array $answers): ?string {
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_TIMEOUT        => 45,
         CURLOPT_HTTPHEADER     => [
             'Content-Type: application/json',
             'Authorization: Bearer ' . GROQ_API_KEY,
         ],
-        CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_SSL_VERIFYHOST => 2,
     ]);
 
     $response = curl_exec($ch);

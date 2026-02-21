@@ -89,20 +89,17 @@ const server = http.createServer((req, res) => {
 
 async function callGroq(payload) {
     const { mode, text, answers } = payload;
-
     let sysPrompt = "";
     let userPrompt = "";
 
-    if (mode === 'clarify') {
-        sysPrompt = "You are an expert prompt engineer. Analyze the intent and provide 3-5 clarification questions to improve the prompt. Respond ONLY in JSON: { \"summary\": \"string\", \"clarification_questions\": [\"string\"] }";
+    if (mode === 'clarify' || !answers || Object.keys(answers).length === 0) {
+        sysPrompt = "You are the Re-Prompt v2 Clarification Engine. Analyze the vision. Respond ONLY in JSON: { \"clarification_required\": true, \"questions\": [\"string\"] } or { \"summary\": \"string\", \"clarification_questions\": [\"string\"] }";
         userPrompt = text;
     } else {
-        sysPrompt = "Synthesize an expert AI prompt based on the vision and answers. Respond ONLY in JSON: { \"master_prompt\": \"...\", \"platform_prompts\": { \"chatgpt\": \"...\", \"midjourney\": \"...\", \"webflow\": \"...\", \"copilot\": \"...\" }, \"suggested_action\": \"string\" }";
+        sysPrompt = "You are the Re-Prompt v2 Senior Architect. Transform vision and context into a machine specification. Respond ONLY in JSON matching the Architect schema (refined_problem_statement, core_features, technical_architecture, confidence_score).";
         let answerText = "";
-        for (const [q, a] of Object.entries(answers || {})) {
-            answerText += `Q: ${q}\nA: ${a}\n\n`;
-        }
-        userPrompt = `Vision: ${text}\nAnswers:\n${answerText}`;
+        for (const [q, a] of Object.entries(answers)) { answerText += `Q: ${q}\nA: ${a}\n\n`; }
+        userPrompt = `Vision: ${text}\nContext:\n${answerText}`;
     }
 
     const groqPayload = JSON.stringify({
@@ -111,7 +108,7 @@ async function callGroq(payload) {
             { role: "system", content: sysPrompt },
             { role: "user", content: userPrompt }
         ],
-        temperature: 0.5,
+        temperature: 0, // Deterministic for v2
         response_format: { type: "json_object" }
     });
 
