@@ -4,6 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';">
   <title>RE:PROMPT | KINETIC NEURAL ENGINE</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -446,6 +448,126 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* ── Accessibility Toolbar ───────────────────────────────────────── */
+    .a11y-toolbar {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10001;
+      display: flex;
+      gap: 10px;
+    }
+
+    .a11y-btn {
+      background: var(--bg);
+      color: var(--fg);
+      border: 2px solid var(--fg);
+      padding: 8px 12px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      transition: var(--transition-snappy);
+    }
+
+    .a11y-btn:hover {
+      background: var(--fg);
+      color: var(--bg);
+    }
+
+    /* ── High Contrast Mode ─────────────────────────────────────────── */
+    body.hc {
+      --bg: #ffffff;
+      --fg: #000000;
+      --accent: #d32f2f;
+      --accent-green: #1b5e20;
+      --accent-yellow: #fbc02d;
+      --accent-blue: #0d47a1;
+      --accent-pink: #c2185b;
+      --border: 4px solid #000;
+      --border-thin: 2px solid #000;
+    }
+
+    body.hc #cursor,
+    body.hc #cursor-follower {
+      mix-blend-mode: multiply;
+      border-color: #000;
+    }
+
+    body.hc .master-prompt {
+      background: #f0f0f0;
+      border: 4px solid #000;
+    }
+
+    body.hc .manifesto-card:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    /* ── Tooltips ───────────────────────────────────────────────────── */
+    [data-tooltip] {
+      position: relative;
+    }
+
+    [data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(0);
+      background: var(--fg);
+      color: var(--bg);
+      padding: 6px 12px;
+      font-size: 10px;
+      font-family: monospace;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition-snappy);
+      z-index: 1000;
+      margin-bottom: 10px;
+      border: 1px solid var(--bg);
+    }
+
+    [data-tooltip]:hover::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-5px);
+    }
+
+    /* ── Mobile Toolbar Overflow ────────────────────────────────────── */
+    @media (max-width: 639px) {
+      .qa-toolbar-container {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+
+      .qa-btns-wrapper {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .qa-btns-wrapper.open {
+        display: flex;
+      }
+
+      .qa-overflow-toggle {
+        display: block !important;
+      }
+    }
+
+    .qa-overflow-toggle {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 2px solid var(--fg);
+      color: var(--fg);
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -454,6 +576,13 @@
   <!-- CUSTOM CURSOR -->
   <div id="cursor"></div>
   <div id="cursor-follower"></div>
+
+  <!-- A11Y TOOLBAR -->
+  <div class="a11y-toolbar">
+    <button class="a11y-btn" onclick="toggleHC()" title="Toggle High Contrast">⬜ HC</button>
+    <button class="a11y-btn" onclick="changeFontSize(-2)" title="Decrease Font Size">A−</button>
+    <button class="a11y-btn" onclick="changeFontSize(2)" title="Increase Font Size">A+</button>
+  </div>
 
   <style>
     /* Typography Overrides to prevent word splits and center layout */
@@ -641,12 +770,54 @@
         <!-- Dynamic Content -->
       </div>
 
-      <div style="margin-top: 100px; display: flex; justify-content: center;">
+      <div style="margin-top:100px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+        <button class="action-button magnetic-wrap" onclick="exportMarkdown()"
+          style="background: var(--fg); color: var(--bg); font-size: 14px; padding: 15px 30px; box-shadow: 5px 5px 0px var(--accent-blue);">
+          EXPORT MD ➜
+        </button>
+        <button class="action-button magnetic-wrap" onclick="window.print()"
+          style="background: var(--fg); color: var(--bg); font-size: 14px; padding: 15px 30px; box-shadow: 5px 5px 0px var(--accent-pink);">
+          EXPORT PDF ➜
+        </button>
         <button class="action-button magnetic-wrap" onclick="location.reload()"
-          style="background: var(--accent-pink); color: #fff;">
+          style="background: var(--accent-pink); color: #fff; font-size: 14px; padding: 15px 30px;">
           RESET ENGINE ➜
         </button>
       </div>
+
+      <style>
+        @media print {
+
+          .a11y-toolbar,
+          .action-button,
+          .zine-header,
+          #manifesto,
+          .qa-toolbar-container,
+          .a11y-btn,
+          #run-sim-btn {
+            display: none !important;
+          }
+
+          body {
+            background: white !important;
+            color: black !important;
+          }
+
+          .poster-container {
+            padding: 0 !important;
+            border: none !important;
+          }
+
+          #platform-grid {
+            display: block !important;
+          }
+
+          .platform-poster {
+            break-inside: avoid;
+            border-top: 1px solid #ccc !important;
+          }
+        }
+      </style>
     </div>
   </main>
 
@@ -658,6 +829,35 @@
 
   <script>
     const API = '/analyze.php';
+    // ── XSS Guard: escape all dynamic content before injecting into innerHTML ──
+    function escHtml(str) {
+      return String(str === null || str === undefined ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ── Non-blocking error banner (replaces alert()) ──────────────────────────
+    function showError(msg) {
+      let banner = document.getElementById('error-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'error-banner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#c0392b;color:#fff;padding:16px 24px;font-weight:700;font-family:monospace;font-size:14px;display:flex;justify-content:space-between;align-items:center;';
+        document.body.prepend(banner);
+      }
+      banner.innerHTML = '';
+      const t = document.createTextNode('⚠ ' + msg);
+      const x = document.createElement('button');
+      x.textContent = '×';
+      x.style.cssText = 'background:none;border:none;color:#fff;cursor:pointer;font-size:18px;padding:0 0 0 16px;';
+      x.onclick = () => banner.remove();
+      banner.appendChild(t);
+      banner.appendChild(x);
+    }
+
     let state = { vision: '', questions: [], answers: {}, results: null };
 
     // --- CUSTOM KINETIC CURSOR ---
@@ -738,11 +938,11 @@
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 
-        state.questions = data.clarification_questions;
+        state.questions = data.clarification_questions || data.questions || [];
         renderQuestions();
         transitionTo(2);
       } catch (err) {
-        alert('ERROR: ' + err.message);
+        showError('Analysis failed: ' + err.message);
       } finally {
         hideLoader();
       }
@@ -767,7 +967,7 @@
         renderResults();
         transitionTo(3);
       } catch (err) {
-        alert('FAILED: ' + err.message);
+        showError('Synthesis failed: ' + err.message);
       } finally {
         hideLoader();
       }
@@ -797,8 +997,8 @@
       container.innerHTML = state.questions.map((q, i) => `
                 <div class="question-zine reveal" style="transition-delay: ${i * 0.1}s">
                     <div style="font-weight: 900; color: var(--accent-pink); margin-bottom: 10px; font-size: 11px;">SYNC_PARAM_${i + 1}</div>
-                    <p style="font-weight: 700; font-size: 1.5rem; margin-bottom: 20px;">${typeof q === 'object' ? (q.question || q.text || JSON.stringify(q)) : q}</p>
-                    <textarea class="answer-area" data-q="${q}" placeholder="Locked context..." style="min-height: 100px; font-size: 18px; border: none; background: #111; padding: 20px;"></textarea>
+                    <p style="font-weight: 700; font-size: 1.5rem; margin-bottom: 20px;">${typeof q === 'object' ? escHtml(q.question || q.text || JSON.stringify(q)) : escHtml(String(q))}</p>
+                    <textarea class="answer-area" data-q="${typeof q === 'object' ? escHtml(q.question || q.text || JSON.stringify(q)) : escHtml(String(q))}" placeholder="Locked context..." style="min-height: 100px; font-size: 18px; border: none; background: #111; padding: 20px;"></textarea>
                 </div>
             `).join('');
 
@@ -808,29 +1008,268 @@
     }
 
     function renderResults() {
-      const r = state.results;
-      document.getElementById('master-prompt-display').textContent = r.master_prompt;
-
+      const display = document.getElementById('master-prompt-display');
       const grid = document.getElementById('platform-grid');
-      grid.innerHTML = Object.entries(r.platform_prompts).map(([plat, text], i) => `
-                <div class="platform-poster reveal" style="transition-delay: ${i * 0.2}s">
-                    <h2 class="platform-title">${plat}</h2>
-                    <p style="font-size: 1.1rem; font-weight: 500; opacity: 0.8; line-height: 1.4;">${text}</p>
-                    <button class="platform-copy" onclick="copyText('${plat}')">COPY SYNCED ${plat.toUpperCase()}</button>
+      const r = state.results;
+      const prompts = r.generated_prompts || {};
+      const cb = r.confidence_breakdown || {};
+      const vl = r.validation_logic || {};
+
+      const safeVal = (v, fallback = 'N/A') => {
+        // All output HTML-escaped to prevent XSS from server/LLM data
+        if (v === null || v === undefined) return escHtml(fallback);
+        if (typeof v === 'string') return escHtml(v);
+        if (typeof v === 'object') return escHtml(v.text || v.description || v.problem_description || JSON.stringify(v));
+        return escHtml(String(v));
+      };
+
+      const likelihoodColor = (l) => ({ HIGH: 'var(--accent-pink)', MEDIUM: 'var(--accent-yellow)', LOW: 'var(--accent-green)' }[l] || 'var(--fg)');
+      const priorityColor = (p) => ({ HIGH: 'var(--accent-pink)', MEDIUM: 'var(--accent-yellow)', LOW: 'var(--accent-green)' }[p] || 'var(--fg)');
+
+      // §1 — Primary Output: Universal Master Prompt
+      display.textContent = prompts.universal_master || 'Generating master prompt...';
+
+      // §2-9 — Full v3 Structured Output
+      grid.innerHTML = `
+        <!-- ── §1: Header ─────────────────────────────────────────── -->
+        <div style="grid-column:1/-1; margin-bottom:60px; border-bottom:var(--border-thin); padding-bottom:30px;">
+          <div style="font-size:11px; color:var(--accent-green); letter-spacing:4px; margin-bottom:12px;">RE-PROMPT v3.1 · HYBRID SEMANTIC ENFORCEMENT ENGINE</div>
+          <h2 style="font-family:Outfit; font-size:3rem; text-transform:uppercase; color:var(--accent-yellow); margin:0;">Engineering Specification</h2>
+          <p style="opacity:0.5; margin-top:8px; font-family:Syne;">TF-IDF fast-pass · LLM judge for gray zone · Consistency-coupled confidence · Server-enforced 422</p>
+        </div>
+
+        <!-- ── §2: Refined Domain Specification ─────────────────── -->
+        <div style="grid-column:1/-1; border-left:5px solid var(--accent-green); padding:30px 30px; background:#060606; margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-green); letter-spacing:3px; margin-bottom:10px;">§1 · REFINED DOMAIN SPECIFICATION</div>
+          <p style="font-size:1.3rem; line-height:1.7; font-weight:500;">${safeVal(r.refined_domain_specification || r.refined_problem_statement)}</p>
+        </div>
+
+        <!-- ── §3: Assumptions Made ─────────────────────────────── -->
+        <div style="grid-column:1/-1; padding:30px; background:#070707; border:1px solid #222; margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-yellow); letter-spacing:3px; margin-bottom:20px;">§2 · ASSUMPTIONS MADE — Every inferred detail declared explicitly</div>
+          ${(r.assumptions_made || []).length === 0
+          ? `<p style="opacity:0.4; font-style:italic;">No assumptions required — all details explicitly provided.</p>`
+          : (r.assumptions_made || []).map(a => `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:15px 0; border-bottom:1px solid #111;">
+              <div style="flex:1;">
+                <strong style="color:var(--accent-yellow);">${safeVal(a.assumption)}</strong>
+                <p style="opacity:0.5; font-size:0.9rem; margin-top:4px;">Reason: ${safeVal(a.reason)}</p>
+              </div>
+              <div style="flex-shrink:0; margin-left:20px; padding:4px 12px; border:1px solid var(--accent-pink); color:var(--accent-pink); font-size:11px; font-weight:700; border-radius:2px;">
+                ${typeof a.confidence_impact === 'number' ? a.confidence_impact : -2} pts
+              </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- ── §4: Functional Components ────────────────────────── -->
+        <div style="grid-column:1/-1; padding:30px; border:1px solid #1a1a1a; margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-blue); letter-spacing:3px; margin-bottom:20px;">§3 · CORE FUNCTIONAL COMPONENTS — Semantic Traceability</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:20px;">
+            ${(r.core_functional_components || r.core_features || []).map(f => {
+            const ts = f.trace_status || (f.is_speculative ? 'speculative' : 'traceable');
+            const badgeColor = { traceable: 'var(--accent-green)', assumption: 'var(--accent-yellow)', speculative: 'var(--accent-pink)' }[ts] || 'var(--fg)';
+            const borderColor = { traceable: 'var(--accent-green)', assumption: 'var(--accent-yellow)', speculative: 'var(--accent-pink)' }[ts] || 'var(--accent-blue)';
+            const scoreNum = typeof f.trace_score === 'number' ? (f.trace_score * 100).toFixed(0) : null;
+            const simSrc = f.similarity_source || 'tfidf';
+            return `
+              <div style="padding:20px; background:#060606; border-left:3px solid ${borderColor};">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <strong style="font-size:1rem;">${safeVal(f.name)}</strong>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    ${scoreNum !== null ? `<span style="font-size:10px; font-family:monospace; color:${badgeColor}; opacity:0.8;">${scoreNum}%</span>` : ''}
+                    <span style="font-size:9px; padding:2px 8px; border:1px solid ${badgeColor}; color:${badgeColor}; text-transform:uppercase; font-weight:700;">${ts}</span>
+                    ${simSrc === 'llm-judge' ? `<span style="font-size:9px; color:#888; border:1px solid #333; padding:1px 5px;" title="Verified via LLM judge">🤖</span>` : ''}
+                  </div>
                 </div>
-            `).join('');
+                <p style="opacity:0.7; font-size:0.9rem; margin-bottom:8px;">${safeVal(f.description)}</p>
+                ${f.explainability_snippet ? `<div style="font-size:10px; color:${badgeColor}; opacity:0.6; margin-bottom:5px;">↳ matched: "${safeVal(f.explainability_snippet)}"</div>` : ''}
+                ${(f.trace_to_input || []).length > 0 ? `<div style="font-size:10px; color:#555;">traces: ${(f.trace_to_input || []).join(' · ')}</div>` : ''}
+              </div>`;
+          }).join('')}
+          </div>
+        </div>
+
+        <!-- ── §5: Non-Functional Requirements ──────────────────── -->
+        <div style="padding:30px; background:#060606; border:1px solid #1a1a1a; margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-pink); letter-spacing:3px; margin-bottom:20px;">§4 · NON-FUNCTIONAL REQUIREMENTS</div>
+          ${(r.non_functional_requirements || []).map(n => `
+            <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #111;">
+              <div>
+                <span style="font-size:10px; color:var(--accent-blue); margin-right:10px;">${safeVal(n.category)}</span>
+                <span style="opacity:0.8;">${safeVal(n.requirement)}</span>
+              </div>
+              <span style="font-size:11px; font-weight:700; color:${priorityColor(n.priority)}; flex-shrink:0; margin-left:15px;">${n.priority || 'MEDIUM'}</span>
+            </div>`).join('') || '<p style="opacity:0.4;">No NFRs specified.</p>'}
+        </div>
+
+        <!-- ── §6: Technical Architecture ──────────────────────── -->
+        <div style="padding:30px; border:1px solid #1a1a1a; margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-blue); letter-spacing:3px; margin-bottom:20px;">§5 · TECHNICAL ARCHITECTURE</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:15px; margin-bottom:20px;">
+            ${['frontend', 'backend', 'ai_components', 'data_storage', 'deployment'].map(k => `
+              <div style="padding:15px; background:#070707; border-top:2px solid var(--accent-blue);">
+                <div style="font-size:10px; color:var(--accent-blue); margin-bottom:6px;">${k.toUpperCase().replace('_', ' ')}</div>
+                <div style="font-weight:700;">${safeVal((r.technical_architecture || {})[k])}</div>
+              </div>`).join('')}
+          </div>
+          ${r.technical_architecture?.justification ? `<div style="font-size:0.85rem; opacity:0.5; border-top:1px solid #111; padding-top:15px;">Justification: ${safeVal(r.technical_architecture.justification)}</div>` : ''}
+        </div>
+
+        <!-- ── §7: Risk Analysis ─────────────────────────────────── -->
+        <div style="padding:30px; background:#060606; border:1px solid #1a1a1a; margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-pink); letter-spacing:3px; margin-bottom:20px;">§6 · RISK ANALYSIS</div>
+          ${(r.risk_analysis || []).map(risk => {
+            const rd = typeof risk === 'string' ? { risk, likelihood: 'MEDIUM', mitigation: '' } : risk;
+            return `
+            <div style="padding:15px 0; border-bottom:1px solid #111;">
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+                <span style="font-size:10px; font-weight:700; padding:2px 8px; border:1px solid ${likelihoodColor(rd.likelihood)}; color:${likelihoodColor(rd.likelihood)};">${rd.likelihood || 'MEDIUM'}</span>
+                <strong>${safeVal(rd.risk)}</strong>
+              </div>
+              <p style="opacity:0.5; font-size:0.85rem; padding-left:4px;">↳ ${safeVal(rd.mitigation, 'No mitigation specified')}</p>
+            </div>`;
+          }).join('') || '<p style="opacity:0.4;">No risks identified.</p>'}
+        </div>
+
+        <!-- ── §8: Validation Logic ──────────────────────────────── -->
+        <div style="grid-column:1/-1; padding:30px; border:1px solid #2a1a00; background:#050501; margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-yellow); letter-spacing:3px; margin-bottom:20px;">§7 · VALIDATION LOGIC — Hybrid Semantic Enforcement v3.1</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:15px; margin-bottom:20px;">
+            <div style="padding:15px; border:1px solid #222;">
+              <div style="font-size:10px; opacity:0.5; margin-bottom:6px;">CONSISTENCY CHECK</div>
+              <div style="font-size:1.2rem; font-weight:700; color:${vl.internal_consistency_check === 'PASS' ? 'var(--accent-green)' : 'var(--accent-yellow)'};">${vl.internal_consistency_check || 'N/A'}</div>
+            </div>
+            <div style="padding:15px; border:1px solid #222;">
+              <div style="font-size:10px; opacity:0.5; margin-bottom:6px;">DOMAIN CONSISTENCY</div>
+              <div style="font-size:1.2rem; font-weight:700; color:${(vl.domain_consistency_computed || 0) >= 80 ? 'var(--accent-green)' : (vl.domain_consistency_computed || 0) >= 60 ? 'var(--accent-yellow)' : 'var(--accent-pink)'};">${typeof vl.domain_consistency_computed === 'number' ? vl.domain_consistency_computed.toFixed(1) + '%' : 'N/A'}</div>
+            </div>
+            <div style="padding:15px; border:1px solid #222;">
+              <div style="font-size:10px; opacity:0.5; margin-bottom:6px;">DRIFT INSTANCES</div>
+              <div style="font-size:1.2rem; font-weight:700; color:${(vl.domain_drift_instances || []).length > 0 ? 'var(--accent-pink)' : 'var(--accent-green)'};">${(vl.domain_drift_instances || []).length}</div>
+            </div>
+            <div style="padding:15px; border:1px solid #222;">
+              <div style="font-size:10px; opacity:0.5; margin-bottom:6px;">LLM JUDGE CALLS</div>
+              <div style="font-size:1.2rem; font-weight:700; color:var(--accent-blue);">${typeof vl.llm_judge_calls === 'number' ? vl.llm_judge_calls : '—'}</div>
+            </div>
+            <div style="padding:15px; border:1px solid #222;">
+              <div style="font-size:10px; opacity:0.5; margin-bottom:6px;">AUTO PASS / FAIL</div>
+              <div style="font-size:1.1rem; font-weight:700;"><span style="color:var(--accent-green);">${vl.tfidf_auto_pass_count ?? '—'}</span>&nbsp;/&nbsp;<span style="color:var(--accent-pink);">${vl.tfidf_auto_fail_count ?? '—'}</span></div>
+            </div>
+            <div style="padding:15px; border:1px solid #222;">
+              <div style="font-size:10px; opacity:0.5; margin-bottom:6px;">ENGINE</div>
+              <div style="font-size:0.65rem; font-weight:700; color:var(--accent-blue); font-family:monospace;">${vl.similarity_engine || 'legacy'}</div>
+            </div>
+          </div>
+          ${(vl.domain_drift_instances || []).length > 0 ? `<div style="margin-top:15px;"><div style="font-size:11px; color:var(--accent-pink); margin-bottom:8px;">SPECULATIVE FEATURES</div>${(vl.domain_drift_instances || []).map(d => '<div style="padding:5px 0; font-size:0.85rem; opacity:0.7; border-bottom:1px solid #111;">⚠ ' + d + '</div>').join('')}</div>` : '<div style="color:var(--accent-green); font-size:0.85rem; margin-top:10px;">✓ All features semantically traceable to user input</div>'}
+          <p style="opacity:0.4; font-size:0.85rem; margin-top:15px;">${safeVal(vl.notes, '')}</p>
+        </div>
+
+        <!-- ── §9: Confidence Score Breakdown ───────────────────── -->
+        <div style="grid-column:1/-1; padding:40px; border:var(--border); background:#030303; margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-green); letter-spacing:3px; margin-bottom:30px;">§8 · CONFIDENCE SCORE BREAKDOWN — Algorithmically Computed</div>
+          <div style="display:flex; align-items:center; gap:30px; margin-bottom:40px; flex-wrap:wrap;">
+            <div style="font-size:5rem; font-weight:900; color:var(--accent-green); line-height:1;">${cb.final_score ?? '—'}</div>
+            <div>
+              <div style="font-size:0.8rem; opacity:0.5; margin-bottom:4px;">FINAL SCORE</div>
+              <div style="font-size:0.75rem; opacity:0.35; font-family:monospace;">${cb.formula || '0.30×IC + 0.30×DC + 0.20×RC + 0.20×LC − Penalty'}</div>
+              ${cb.server_computed ? `<div style="font-size:10px; color:var(--accent-green); margin-top:6px;">✓ Server-computed · Not AI-generated</div>` : ''}
+              ${cb.assumption_penalty ? `<div style="font-size:11px; color:var(--accent-pink); margin-top:4px;">Assumption penalty: ${cb.assumption_penalty} pts</div>` : ''}
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px;">
+            ${[
+          { key: 'input_clarity', label: 'Input Clarity', w: '30%', color: 'var(--accent-yellow)', formula: 'Score = Base(60) + Refinement' },
+          { key: 'domain_consistency', label: 'Domain Consistency', w: '30%', color: 'var(--accent-blue)', formula: 'Score = (Traceable Features / Total) × 100' },
+          { key: 'requirement_completeness', label: 'Req. Completeness', w: '20%', color: 'var(--accent-pink)', formula: 'Score = (Covered NFRs / 5) × 100' },
+          { key: 'logical_coherence', label: 'Logical Coherence', w: '20%', color: 'var(--accent-green)', formula: 'Score = Base(100) - Inconsistency Penalties' }
+        ].map(comp => {
+          const data = cb[comp.key] || {};
+          const score = data.score ?? 0;
+          return `
+              <div style="padding:20px; background:#080808; border-top:2px solid ${comp.color};" data-tooltip="${comp.formula}">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                  <span style="font-size:11px; color:${comp.color};">${comp.label} (w=${comp.w})</span>
+                  <strong style="color:${comp.color};">${score}</strong>
+                </div>
+                <div style="height:6px; background:#111; border-radius:3px; margin-bottom:10px;">
+                  <div style="height:100%; width:${score}%; background:${comp.color}; border-radius:3px; transition:width 0.8s ease;"></div>
+                </div>
+                <p style="font-size:11px; opacity:0.4;">${safeVal(data.justification, '')}</p>
+              </div>`;
+        }).join('')}
+          </div>
+        </div>
+
+        <!-- ── §9: Generated Prompts + Quick Actions ───────────── -->
+        <div style="grid-column:1/-1; margin-bottom:20px; border-bottom:var(--border-thin); padding-bottom:20px;">
+          <h2 style="font-family: Outfit; font-size: 3rem; text-transform: uppercase; color: var(--accent-yellow);">§9 · Generated Prompts</h2>
+        </div>
+        ${[
+          { id: 'chatgpt', title: 'ChatGPT (Reasoning)', content: prompts.chatgpt_specialized, key: 'chatgpt_specialized', toolKey: 'chatgpt', accentColor: 'var(--accent-green)' },
+          { id: 'copilot', title: 'Copilot (Coding)', content: prompts.copilot_coding, key: 'copilot_coding', toolKey: 'copilot', accentColor: 'var(--accent-blue)' }
+        ].map((p, i) => `
+        <div class="platform-poster reveal" style="transition-delay:${i * 0.1}s">
+          <h2 class="platform-title" style="font-size:1.5rem; color:${p.accentColor};">${p.title}</h2>
+          <p style="font-size:0.95rem; opacity:0.8; margin-bottom:20px; min-height:80px;">${p.content ? (p.content.slice(0, 240) + '...') : 'Not generated'}</p>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <button class="platform-copy" onclick="copyPlatformText('${p.id}')" aria-label="Copy ${p.title} prompt" style="text-align:center; background:var(--bg); color:var(--fg); border:2px solid var(--fg);">COPY ➜</button>
+            <button onclick="openPreviewModal('${p.toolKey}', '${p.id}')" aria-label="Execute ${p.title} prompt via AI" style="text-align:center; background:${p.accentColor}; color:#000; border:none; font-weight:700; padding:10px; cursor:pointer; font-family:inherit; letter-spacing:1px; transition:opacity 0.2s;" onmouseenter="this.style.opacity=0.85" onmouseleave="this.style.opacity=1">▶ EXECUTE</button>
+          </div>
+        </div>`).join('')}
+
+        <!-- ── Quick Action Toolbar ──────────────────────────────── -->
+        <div style="grid-column:1/-1; margin-top:20px; padding:25px; border:1px solid #1a1a1a; background:#030303;">
+          <div style="font-size:11px; color:#555; letter-spacing:3px; margin-bottom:18px;">⚡ QUICK EXECUTE — SERVER-BACKED · Rate Limited · Sanitized</div>
+          <div class="qa-toolbar-container" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+             <button class="qa-overflow-toggle" onclick="this.nextElementSibling.classList.toggle('open')">⋯ MORE ACTIONS</button>
+             <div class="qa-btns-wrapper" style="display:flex; gap:12px; flex-wrap:wrap;">
+               ${[{ k: 'chatgpt', label: 'ChatGPT', icon: '💬', color: 'var(--accent-green)', promptKey: 'chatgpt_specialized' }, { k: 'copilot', label: 'Copilot', icon: '🔧', color: 'var(--accent-blue)', promptKey: 'copilot_coding' }, { k: 'plan', label: 'Impl Plan', icon: '📋', color: 'var(--accent-yellow)', promptKey: 'universal_master' }, { k: 'test-scaffold', label: 'Test Scaffold', icon: '🧪', color: 'var(--accent-pink)', promptKey: 'universal_master' }].map(t => `<button id="qa-btn-${t.k}" onclick="executeQuickAction('${t.k}', '${t.promptKey}')" aria-label="Execute ${t.label}" title="${t.label} (server-side execution)" style="padding:12px 20px; background:transparent; border:2px solid ${t.color}; color:${t.color}; font-family:inherit; font-size:13px; font-weight:700; letter-spacing:1px; cursor:pointer; transition:all 0.2s; border-radius:2px;" onmouseenter="this.style.background='${t.color}';this.style.color='#000'" onmouseleave="this.style.background='transparent';this.style.color='${t.color}'">${t.icon} ${t.label}</button>`).join('')}
+             </div>
+          </div>
+          <div style="font-size:10px; color:#333; margin-top:12px;">Ctrl+Enter executes ChatGPT quickly. Prompts sanitized server-side. API keys never exposed to browser.</div>
+        </div>
+
+        <!-- ── §10: Simulation Mode ──────────────────────────────── -->
+        <div style="grid-column:1/-1; padding:30px; border:1px solid #1a1a1a; background:#050505; margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-blue); letter-spacing:3px; margin-bottom:20px;">§9 · SIMULATION MODE — Confidence Sensitivity Analysis</div>
+          <button id="run-sim-btn" onclick="runSimulation()" style="background:transparent; border:1px solid var(--accent-blue); color:var(--accent-blue); padding:10px 20px; font-family:inherit; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseenter="this.style.background='var(--accent-blue)';this.style.color='#000'">▶ RUN SIMULATION</button>
+          <div id="simulation-report-container">
+             <p style="opacity:0.3; font-size:11px; margin-top:15px;">Run simulation to analyze how different drift thresholds [0.70, 0.55, 0.45] impact final confidence scores.</p>
+          </div>
+        </div>
+      `;
 
       setTimeout(() => {
         document.querySelectorAll('#platform-grid .reveal').forEach(el => observer.observe(el));
       }, 100);
     }
 
-    function copyText(key) {
-      const text = key === 'master' ? state.results.master_prompt : state.results.platform_prompts[key];
+
+    function copyPlatformText(id) {
+      const prompts = state.results.generated_prompts || {};
+      const map = { chatgpt: 'chatgpt_specialized', midjourney: 'midjourney_visual', copilot: 'copilot_coding' };
+      const text = prompts[map[id]];
+      if (!text) return;
+
       navigator.clipboard.writeText(text);
       const btn = event.target;
       const original = btn.textContent;
       btn.textContent = 'SYNC_COPIED';
+      btn.style.background = 'var(--accent-green)';
+      btn.style.color = '#000';
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 1500);
+    }
+
+    function copyText(key) {
+      const display = document.getElementById('master-prompt-display');
+      navigator.clipboard.writeText(display.textContent);
+      const btn = event.target;
+      const original = btn.textContent;
+      btn.textContent = 'MASTER_COPIED';
       btn.style.background = 'var(--accent-green)';
       btn.style.color = '#000';
       setTimeout(() => {
@@ -849,7 +1288,192 @@
       loader.style.display = 'none';
     }
 
+    // --- ACCESSIBILITY HANDLERS ---
+    function toggleHC() {
+      document.body.classList.toggle('hc');
+      localStorage.setItem('hc', document.body.classList.contains('hc') ? '1' : '0');
+    }
+
+    function changeFontSize(delta) {
+      const el = document.documentElement;
+      const current = parseFloat(getComputedStyle(el).fontSize);
+      const next = Math.min(24, Math.max(14, current + delta));
+      el.style.fontSize = next + 'px';
+      localStorage.setItem('fontSize', next);
+    }
+
+    // Restore A11y
+    if (localStorage.getItem('hc') === '1') document.body.classList.add('hc');
+    if (localStorage.getItem('fontSize')) document.documentElement.style.fontSize = localStorage.getItem('fontSize') + 'px';
+
+    // --- SIMULATION & EXPORT ---
+    async function runSimulation() {
+      if (!state.results) return;
+      const btn = document.getElementById('run-sim-btn');
+      btn.disabled = true;
+      btn.textContent = 'SIMULATING...';
+
+      try {
+        const res = await fetch('/api/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: state.results })
+        });
+        const report = await res.json();
+        renderSimulationReport(report);
+      } catch (err) {
+        showError('Simulation failed: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'RE-RUN SIMULATION';
+      }
+    }
+
+    function renderSimulationReport(report) {
+      const container = document.getElementById('simulation-report-container');
+      container.innerHTML = `
+        <table style="width:100%; border-collapse:collapse; margin-top:20px; font-size:12px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--accent-blue); text-align:left;">
+              <th style="padding:10px;">THRESHOLD</th>
+              <th style="padding:10px;">CONSISTENCY</th>
+              <th style="padding:10px;">DELTA</th>
+              <th style="padding:10px;">FINAL SCORE</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${report.map(r => `
+              <tr style="border-bottom:1px solid #222;">
+                <td style="padding:10px;">${r.threshold.toFixed(2)}</td>
+                <td style="padding:10px;">${r.domain_consistency.toFixed(1)}%</td>
+                <td style="padding:10px; color:${r.confidence_delta >= 0 ? 'var(--accent-green)' : 'var(--accent-pink)'}">${r.confidence_delta >= 0 ? '+' : ''}${r.confidence_delta.toFixed(1)}</td>
+                <td style="padding:10px; font-weight:900; color:var(--accent-yellow);">${r.final_score.toFixed(1)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function exportMarkdown() {
+      if (!state.results) return;
+      const r = state.results;
+      const md = `# RE-PROMPT Engineering Spec\n\n` +
+        `## Domain\n${r.refined_domain_specification || r.refined_problem_statement}\n\n` +
+        `## Confidence: ${r.confidence_breakdown.final_score}%\n\n` +
+        `## Components\n` +
+        (r.core_functional_components || []).map(f => `- **${f.name}**: ${f.description} (${f.trace_status})`).join('\n') +
+        `\n\n## Master Prompt\n\`\`\`\n${r.generated_prompts.universal_master}\n\`\`\``;
+
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `spec-${Date.now()}.md`;
+      a.click();
+    }
+
+    // --- QUICK ACTION MODAL LOGIC ---
+    let _activeToolKey = null;
+
+    function openPreviewModal(toolKey, promptId) {
+      _activeToolKey = toolKey;
+      const prompts = state.results && state.results.generated_prompts ? state.results.generated_prompts : {};
+      const keyMap = { chatgpt: 'chatgpt_specialized', copilot: 'copilot_coding', universal_master: 'universal_master' };
+      const promptText = prompts[keyMap[promptId] || promptId] || prompts.universal_master || '';
+      document.getElementById('modal-prompt-edit').value = promptText;
+      document.getElementById('modal-tool-label').textContent = toolKey.toUpperCase();
+      document.getElementById('modal-response').textContent = '';
+      document.getElementById('modal-response-section').style.display = 'none';
+      const btn = document.getElementById('modal-send-btn');
+      btn.textContent = 'SEND TO ' + toolKey.toUpperCase();
+      btn.disabled = false;
+      document.getElementById('qa-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('qa-modal').style.display = 'none';
+    }
+
+    async function sendModalPrompt() {
+      const prompt = document.getElementById('modal-prompt-edit').value.trim();
+      const btn = document.getElementById('modal-send-btn');
+      if (!prompt || !_activeToolKey) return;
+      btn.textContent = '...PROCESSING';
+      btn.disabled = true;
+      document.getElementById('modal-response-section').style.display = 'none';
+      try {
+        const resp = await fetch('/api/execute-tool', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool: _activeToolKey, prompt, prompt_meta: { source: 'preview-modal' } })
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data.ok) throw new Error(data.error || 'Server error');
+        document.getElementById('modal-response').textContent = data.toolResponse;
+        document.getElementById('modal-response-section').style.display = 'block';
+        btn.textContent = 'DONE — Send Again';
+        btn.disabled = false;
+      } catch (err) {
+        document.getElementById('modal-response').textContent = 'Error: ' + err.message;
+        document.getElementById('modal-response-section').style.display = 'block';
+        btn.textContent = 'RETRY';
+        btn.disabled = false;
+      }
+    }
+
+    async function executeQuickAction(toolKey, promptKey) {
+      if (!state.results) { alert('Run analysis first.'); return; }
+      openPreviewModal(toolKey, promptKey);
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeModal();
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        if (document.getElementById('qa-modal').style.display === 'flex') {
+          sendModalPrompt();
+        } else if (state.results) {
+          executeQuickAction('chatgpt', 'chatgpt_specialized');
+        }
+      }
+    });
   </script>
+
+  <div id="qa-modal" role="dialog" aria-modal="true" aria-label="Preview Execute"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9999; justify-content:center; align-items:flex-start; overflow-y:auto; padding:40px 20px;">
+    <div
+      style="background:#0a0a0a; border:2px solid #333; max-width:860px; width:100%; padding:40px; position:relative;">
+      <button onclick="closeModal()" aria-label="Close"
+        style="position:absolute; top:16px; right:16px; background:none; border:1px solid #444; color:#fff; font-size:18px; cursor:pointer; padding:4px 10px; font-family:inherit;">X</button>
+      <div style="font-size:11px; color:var(--accent-blue); letter-spacing:3px; margin-bottom:8px;">PREVIEW EXECUTE
+      </div>
+      <h3 id="modal-tool-label"
+        style="font-family:Outfit; font-size:1.8rem; color:var(--accent-yellow); margin-bottom:24px; text-transform:uppercase;">
+      </h3>
+      <div style="font-size:11px; opacity:0.4; margin-bottom:8px;">Edit before sending. Ctrl+Enter to execute.
+        Server-sanitized and rate-limited.</div>
+      <textarea id="modal-prompt-edit" aria-label="Prompt editor"
+        style="width:100%; min-height:220px; background:#050505; border:1px solid #333; color:#f4f4f4; font-family:monospace; font-size:13px; padding:16px; resize:vertical; line-height:1.6;"></textarea>
+      <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;">
+        <button id="modal-send-btn" onclick="sendModalPrompt()" aria-label="Execute prompt"
+          style="flex:1; padding:14px; background:var(--accent-green); color:#000; font-family:inherit; font-weight:700; font-size:14px; border:none; cursor:pointer; letter-spacing:1px;">SEND</button>
+        <button onclick="closeModal()" aria-label="Cancel"
+          style="padding:14px 24px; background:transparent; border:2px solid #444; color:#fff; font-family:inherit; cursor:pointer; font-size:13px;">CANCEL</button>
+      </div>
+      <div id="modal-response-section"
+        style="display:none; margin-top:24px; border-top:1px solid #222; padding-top:20px;">
+        <div style="font-size:11px; color:var(--accent-green); letter-spacing:2px; margin-bottom:10px;">AI RESPONSE
+        </div>
+        <pre id="modal-response"
+          style="white-space:pre-wrap; font-family:monospace; font-size:13px; line-height:1.7; max-height:400px; overflow-y:auto; background:#050505; padding:20px; border:1px solid #1a1a1a;"></pre>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('modal-response').textContent)"
+          aria-label="Copy AI response"
+          style="margin-top:10px; padding:10px 18px; background:transparent; border:2px solid var(--accent-green); color:var(--accent-green); font-family:inherit; cursor:pointer; font-size:12px;">COPY
+          RESPONSE</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 
 </html>

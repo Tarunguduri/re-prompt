@@ -323,25 +323,28 @@ function callGroq(string $text, string $mode, array $answers): ?string {
         $answerText = '';
         foreach ($answers as $q => $a) { $answerText .= "Q: $q\nA: $a\n\n"; }
         
-        $systemPrompt = "You are the Re-Prompt v2 Senior AI Systems Architect.\n"
-            . "OBJECTIVE: Transform vision into a machine-validated specification.\n"
+        $systemPrompt = "You are the Re-Prompt v2 Senior AI Systems Architect & Prompt Engineer.\n"
+            . "OBJECTIVE: Transform vision into a machine-validated specification AND optimized AI prompts.\n"
             . "RULES:\n"
             . "1. ALWAYS OUTPUT VALID JSON (No prose).\n"
             . "2. DOMAIN CONSTRAINT: Do not invent features outside logically implied domain.\n"
-            . "3. TRACEABILITY: Map every feature to user input.\n"
-            . "SCHEMA:\n"
+            . "3. RESULT FOCUS: Provide the actual prompts the user needs for their tools.\n"
+            . "4. NO NESTED KEYS: NEVER use keys like 'feature_1', 'feature_2'. Use flat arrays.\n"
+            . "EXAMPLE STRUCTURE (FEW-SHOT):\n"
             . "{\n"
-            . "  \"refined_problem_statement\": \"\",\n"
-            . "  \"identified_missing_dimensions\": [],\n"
-            . "  \"assumptions_made\": [],\n"
-            . "  \"core_features\": [{\"name\": \"\", \"description\": \"\", \"trace_to_input\": [], \"justification\": \"\"}],\n"
-            . "  \"non_functional_requirements\": [],\n"
-            . "  \"technical_architecture\": {\"frontend\": \"\", \"backend\": \"\", \"ai_components\": \"\", \"data_storage\": \"\"},\n"
-            . "  \"risk_analysis\": [],\n"
-            . "  \"domain_validation\": {\"irrelevant_features_detected\": [], \"domain_consistency_score\": 0-100},\n"
-            . "  \"confidence_score\": 0-100\n"
+            . "  \"refined_problem_statement\": \"A flat string description\",\n"
+            . "  \"core_features\": [{\"name\": \"Feature Name\", \"description\": \"Feature Desc\", \"trace_to_input\": [\"input string\"], \"justification\": \"logic\"}],\n"
+            . "  \"technical_architecture\": {\"frontend\": \"React\", \"backend\": \"PHP/Node\", \"ai_components\": \"Groq/Llama\", \"data_storage\": \"MySQL\"},\n"
+            . "  \"domain_validation\": {\"domain_consistency_score\": 95},\n"
+            . "  \"confidence_score\": 90,\n"
+            . "  \"generated_prompts\": {\n"
+            . "    \"universal_master\": \"Detailed Master Prompt...\",\n"
+            . "    \"chatgpt_specialized\": \"ChatGPT specific...\",\n"
+            . "    \"midjourney_visual\": \"Visual prompt...\",\n"
+            . "    \"copilot_coding\": \"Architectural prompt...\"\n"
+            . "  }\n"
             . "}";
-        $userPrompt = "INITIAL VISION: $text\n\nCONTEXT:\n$answerText\n\nTASK: Generate the specification.";
+        $userPrompt = "INITIAL VISION: $text\n\nCONTEXT:\n$answerText\n\nTASK: Generate the specification and the final optimized prompts.";
     }
 
     $payload = json_encode([
