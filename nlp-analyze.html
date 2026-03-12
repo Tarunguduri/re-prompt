@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';">
-  <title>RE:PROMPT | KINETIC NEURAL ENGINE</title>
+  <title>KINETIC NEURAL ENGINE</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,8 +21,8 @@
       --accent: #FF3D00;
       --accent-green: #39FF14;
       --accent-yellow: #FFE600;
-      --accent-blue: #0047FF;
-      --accent-pink: #FF00E5;
+      --accent-blue: #80A5FF;
+      --accent-pink: #FFB3EA;
 
       --border: 4px solid var(--fg);
       --border-thin: 2px solid var(--fg);
@@ -55,6 +55,7 @@
       overflow-x: hidden;
       line-height: 1.1;
       word-break: break-word;
+      font-size: 16px;
     }
 
     /* Custom Cursor */
@@ -359,6 +360,18 @@
       box-shadow: 25px 25px 0px var(--accent-green);
     }
 
+    /* ── Results Grid Layout ─────────────────────────────────────── */
+    #platform-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      width: 100%;
+    }
+
+    #platform-grid>div {
+      width: 100%;
+    }
+
     .platform-poster {
       border-top: var(--border-thin);
       padding: 40px 0;
@@ -449,61 +462,6 @@
       transform: translateY(0);
     }
 
-    /* ── Accessibility Toolbar ───────────────────────────────────────── */
-    .a11y-toolbar {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 10001;
-      display: flex;
-      gap: 10px;
-    }
-
-    .a11y-btn {
-      background: var(--bg);
-      color: var(--fg);
-      border: 2px solid var(--fg);
-      padding: 8px 12px;
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 12px;
-      cursor: pointer;
-      transition: var(--transition-snappy);
-    }
-
-    .a11y-btn:hover {
-      background: var(--fg);
-      color: var(--bg);
-    }
-
-    /* ── High Contrast Mode ─────────────────────────────────────────── */
-    body.hc {
-      --bg: #ffffff;
-      --fg: #000000;
-      --accent: #d32f2f;
-      --accent-green: #1b5e20;
-      --accent-yellow: #fbc02d;
-      --accent-blue: #0d47a1;
-      --accent-pink: #c2185b;
-      --border: 4px solid #000;
-      --border-thin: 2px solid #000;
-    }
-
-    body.hc #cursor,
-    body.hc #cursor-follower {
-      mix-blend-mode: multiply;
-      border-color: #000;
-    }
-
-    body.hc .master-prompt {
-      background: #f0f0f0;
-      border: 4px solid #000;
-    }
-
-    body.hc .manifesto-card:hover {
-      background: rgba(0, 0, 0, 0.1);
-    }
-
     /* ── Tooltips ───────────────────────────────────────────────────── */
     [data-tooltip] {
       position: relative;
@@ -532,6 +490,131 @@
     [data-tooltip]:hover::after {
       opacity: 1;
       transform: translateX(-50%) translateY(-5px);
+    }
+
+    /* ── Blueprint Section ───────────────────────────────────────────── */
+    .blueprint-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 40px;
+    }
+
+    .blueprint-step {
+      background: #050505;
+      padding: 40px;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+
+    .blueprint-step:hover {
+      background: #0a0a0a;
+    }
+
+    .blueprint-number {
+      font-family: 'Outfit', sans-serif;
+      font-size: 8rem;
+      position: absolute;
+      top: -20px;
+      right: 10px;
+      opacity: 0.03;
+      pointer-events: none;
+      color: var(--fg);
+    }
+
+    .blueprint-tag {
+      font-family: monospace;
+      font-size: 10px;
+      color: var(--accent-yellow);
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .blueprint-step h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      color: var(--accent-blue);
+    }
+
+    .blueprint-step p {
+      font-size: 14px;
+      line-height: 1.6;
+      opacity: 0.6;
+    }
+
+    /* ── User Manual Section ────────────────────────────────────────── */
+    .manual-container {
+      margin-top: 100px;
+      padding: 60px;
+      background: #080808;
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      position: relative;
+    }
+
+    .manual-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .manual-card {
+      padding: 30px;
+      border: 1px solid #222;
+      transition: var(--transition-smooth);
+      position: relative;
+      background: #000;
+    }
+
+    .manual-card:hover {
+      border-color: var(--accent-yellow);
+      transform: translateY(-5px);
+      box-shadow: 10px 10px 0px rgba(255, 230, 0, 0.1);
+    }
+
+    .manual-label {
+      font-family: monospace;
+      font-size: 10px;
+      background: var(--accent-yellow);
+      color: #000;
+      padding: 4px 8px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .manual-step-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 40px;
+      color: rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .manual-card h5 {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: var(--fg);
+    }
+
+    .manual-card p {
+      font-size: 14px;
+      line-height: 1.5;
+      opacity: 0.5;
+    }
+
+    .manual-arrow {
+      color: var(--accent-yellow);
+      font-size: 24px;
+      margin: 20px 0;
+      text-align: center;
     }
 
     /* ── Mobile Toolbar Overflow ────────────────────────────────────── */
@@ -568,6 +651,197 @@
       font-weight: 700;
       cursor: pointer;
     }
+
+    /* ── Plan Report Styles ─────────────────────────────────────── */
+    .plan-report {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .plan-summary-bar {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 20px;
+      background: #080808;
+      border: 1px solid #222;
+      margin-bottom: 20px;
+    }
+
+    .plan-stat {
+      text-align: center;
+      flex: 1;
+      min-width: 100px;
+    }
+
+    .plan-stat-value {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--accent-green);
+    }
+
+    .plan-stat-label {
+      font-size: 10px;
+      opacity: 0.5;
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+
+    .plan-phase-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: #0a0a0a;
+      border-left: 4px solid var(--accent-blue);
+      margin-top: 20px;
+      margin-bottom: 2px;
+    }
+
+    .plan-phase-id {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--accent-blue);
+      letter-spacing: 2px;
+    }
+
+    .plan-phase-name {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .plan-phase-desc {
+      font-size: 0.8rem;
+      opacity: 0.4;
+      margin-left: auto;
+    }
+
+    .plan-phase-hours {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-yellow);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .plan-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .plan-table th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      opacity: 0.4;
+      border-bottom: 1px solid #222;
+    }
+
+    .plan-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #111;
+      vertical-align: top;
+    }
+
+    .plan-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .ci-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: inline-block;
+    }
+
+    .ci-badge--lint {
+      background: #1a3a1a;
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+    }
+
+    .ci-badge--unit-test {
+      background: #1a2a3a;
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue);
+    }
+
+    .ci-badge--integration-test {
+      background: #2a1a3a;
+      color: #b39ddb;
+      border: 1px solid #b39ddb;
+    }
+
+    .ci-badge--e2e {
+      background: #3a3a1a;
+      color: var(--accent-yellow);
+      border: 1px solid var(--accent-yellow);
+    }
+
+    .ci-badge--deploy {
+      background: #3a1a1a;
+      color: var(--accent-pink);
+      border: 1px solid var(--accent-pink);
+    }
+
+    .ci-badge--none {
+      background: #1a1a1a;
+      color: #555;
+      border: 1px solid #333;
+    }
+
+    .priority-badge {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 2px;
+      letter-spacing: 1px;
+      display: inline-block;
+    }
+
+    .priority-badge--P0 {
+      color: var(--accent-pink);
+      border: 1px solid var(--accent-pink);
+    }
+
+    .priority-badge--P1 {
+      color: var(--accent-yellow);
+      border: 1px solid var(--accent-yellow);
+    }
+
+    .priority-badge--P2 {
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+    }
+
+    .plan-dep {
+      font-size: 10px;
+      color: #666;
+      font-family: monospace;
+    }
+
+    .plan-export-btn {
+      padding: 12px 24px;
+      background: transparent;
+      border: 2px solid var(--accent-yellow);
+      color: var(--accent-yellow);
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 16px;
+    }
+
+    .plan-export-btn:hover {
+      background: var(--accent-yellow);
+      color: #000;
+    }
   </style>
 </head>
 
@@ -577,12 +851,7 @@
   <div id="cursor"></div>
   <div id="cursor-follower"></div>
 
-  <!-- A11Y TOOLBAR -->
-  <div class="a11y-toolbar">
-    <button class="a11y-btn" onclick="toggleHC()" title="Toggle High Contrast">⬜ HC</button>
-    <button class="a11y-btn" onclick="changeFontSize(-2)" title="Decrease Font Size">A−</button>
-    <button class="a11y-btn" onclick="changeFontSize(2)" title="Increase Font Size">A+</button>
-  </div>
+
 
   <style>
     /* Typography Overrides to prevent word splits and center layout */
@@ -692,9 +961,117 @@
       </div>
     </div>
 
-    <div class="reveal" style="transition-delay: 0.5s">
+    <div id="blueprint" class="reveal" style="margin-top: 150px; border-top: 1px solid #111; padding-top: 80px;">
+      <div
+        style="font-size: 11px; color: var(--accent-blue); letter-spacing: 5px; margin-bottom: 40px; text-align: center;">
+        §0 · OPERATIONAL BLUEPRINT</div>
+      <h2
+        style="font-family: 'Outfit', sans-serif; font-size: 4rem; text-align: center; text-transform: uppercase; margin-bottom: 80px;">
+        How the <span style="color: var(--accent-green);">Engine</span> Works</h2>
+
+      <div class="blueprint-grid">
+        <div class="blueprint-step">
+          <div class="blueprint-number">01</div>
+          <span class="blueprint-tag">PHASE_INTAKE</span>
+          <h4>Vision Seed</h4>
+          <p>Input your raw concept, feature list, or problem statement. The Kinetic Engine accepts unstructured
+            intuition and prepares it for neural mapping.</p>
+        </div>
+        <div class="blueprint-step">
+          <div class="blueprint-number">02</div>
+          <span class="blueprint-tag">PHASE_VECTORING</span>
+          <h4>Intent Mapping</h4>
+          <p>The system automatically classifies your request into one of three operational states: Concept Refinement,
+            Product Architecture, or Professional PRD Synthesis.</p>
+        </div>
+        <div class="blueprint-step" style="border-right: none;">
+          <div class="blueprint-number">03</div>
+          <span class="blueprint-tag">PHASE_SYNCHRONIZATION</span>
+          <h4>Semantic Verification</h4>
+          <p>Interactive feedback loops identify technical gaps. By answering strategic questions, you reach 100%
+            fidelity before the first line of code is simulated.</p>
+        </div>
+        <div class="blueprint-step">
+          <div class="blueprint-number">04</div>
+          <span class="blueprint-tag">PHASE_SYNTHESIS</span>
+          <h4>Neural Execution</h4>
+          <p>The system synthesizes a "Master Prompt" and specialized instructions for ChatGPT (Reasoning), Claude
+            (Architecture), and Copilot (Code Generation).</p>
+        </div>
+        <div class="blueprint-step">
+          <div class="blueprint-number">05</div>
+          <span class="blueprint-tag">PHASE_AUDIT</span>
+          <h4>Consistency Audit</h4>
+          <p>Running a final logic sweep across all generated requirements to detect and resolve any architectural
+            contradictions before delivery.</p>
+        </div>
+        <div class="blueprint-step" style="border-right: none;">
+          <div class="blueprint-number">06</div>
+          <span class="blueprint-tag">PHASE_SHIPPING</span>
+          <h4>Production Ship</h4>
+          <p>Your complete technical ecosystem is ready. Receive a structured implementation plan and specialized
+            prompts for immediate development.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="user-manual" class="reveal manual-container"
+      style="margin-top: 100px; border-top: 1px solid #111; padding-top: 80px;">
+      <div
+        style="font-size: 11px; color: var(--accent-yellow); letter-spacing: 5px; margin-bottom: 30px; text-align: center;">
+        §0.1 · QUICK START MANUAL</div>
+      <h3
+        style="font-family: 'Syne', sans-serif; font-size: 2.5rem; text-align: center; text-transform: uppercase; margin-bottom: 50px;">
+        How to Use the <span style="color: var(--accent-yellow);">Workspace</span></h3>
+
+      <div class="manual-grid">
+        <div class="manual-card">
+          <div class="manual-label">TYPE HERE</div>
+          <div class="manual-step-num">01</div>
+          <h5>Define Your Vision</h5>
+          <p>Scroll down to the <strong>NEURAL VISION</strong> section. Type your project idea into the large text area.
+            Be specific for better results.</p>
+        </div>
+
+        <div class="manual-card">
+          <div class="manual-label">SELECT MODE</div>
+          <div class="manual-step-num">02</div>
+          <h5>Pick Intent State</h5>
+          <p>Choose between <strong>Refinement</strong>, <strong>Planning</strong>, or <strong>PRD</strong>. Use
+            "AUTO-DETECT" if you're unsure where to start.</p>
+        </div>
+
+        <div class="manual-card">
+          <div class="manual-label">ANSWER QUESTIONS</div>
+          <div class="manual-step-num">03</div>
+          <h5>Sync Context</h5>
+          <p>Click "ACTIVATE ENGINE". Use the dynamic input cards to answer follow-up questions from the AI. This
+            eliminates technical uncertainty.</p>
+        </div>
+
+        <div class="manual-card" style="border-color: var(--accent-green);">
+          <div class="manual-label" style="background: var(--accent-green);">COPY RESULT</div>
+          <div class="manual-step-num">04</div>
+          <h5>Execute Outputs</h5>
+          <p>Click "SYNTHESIZE ALL". Copy your <strong>Master Prompt</strong> or use the tool-specific tabs (ChatGPT,
+            Claude, Copilot) to start building.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="reveal"
+      style="transition-delay: 0.5s; display: flex; gap: 40px; margin-top: 100px; justify-content: center; flex-wrap: wrap;">
+      <a href="#blueprint" class="magnetic-wrap"
+        style="display: inline-flex; align-items: center; gap: 20px; font-weight: 800; font-family: Syne; color: var(--accent-blue); text-decoration: none; font-size: 1.5rem;">
+        HOW IT WORKS ➜
+      </a>
+      <a href="#user-manual" class="magnetic-wrap"
+        style="display: inline-flex; align-items: center; gap: 20px; font-weight: 800; font-family: Syne; color: var(--accent-yellow); text-decoration: none; font-size: 1.5rem;">
+        USER MANUAL ➜
+      </a>
       <a href="#view-1" class="magnetic-wrap scroll-to-engine"
-        style="margin-top: 100px; display: inline-flex; align-items: center; gap: 20px; font-weight: 800; font-family: Syne; color: white; text-decoration: none; font-size: 1.5rem;">
+        style="display: inline-flex; align-items: center; gap: 20px; font-weight: 800; font-family: Syne; color: white; text-decoration: none; font-size: 1.5rem;">
         INITIALIZE KINETIC ENGINE ➜
       </a>
     </div>
@@ -725,6 +1102,19 @@
       <div class="zine-right">
         <div class="input-zine">
           <textarea id="vision-input" placeholder="Enter vision data..."></textarea>
+
+          <div style="margin-top: 20px;">
+            <label for="intent-selector"
+              style="font-family: 'Syne', sans-serif; font-weight: 700; color: var(--accent-yellow); font-size: 14px; text-transform: uppercase;">Engine
+              Mode:</label>
+            <select id="intent-selector"
+              style="width: 100%; background: #111; border: 2px solid var(--fg); color: var(--fg); padding: 15px; font-family: 'Space Grotesk'; font-weight: 700; font-size: 18px; margin-top: 10px; outline: none; cursor: pointer;">
+              <option value="auto">🔮 AUTO-DETECT INTENT</option>
+              <option value="IDEA_REFINEMENT">💡 IDEA REFINEMENT (No Arch)</option>
+              <option value="PRODUCT_PLANNING">🏗️ PRODUCT PLANNING (Architecture)</option>
+              <option value="PRD_GENERATION">📄 PRD DOCUMENT (Professional)</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -758,7 +1148,7 @@
           <span class="highlight">SYNTHESIS</span>
           COMPLETE
         </h1>
-        <button class="action-button magnetic-wrap" onclick="copyText('master')"
+        <button id="master-copy-btn" class="action-button magnetic-wrap" onclick="copyText('master')"
           style="background: var(--accent-yellow); color: #000; font-size: 14px; padding: 12px 24px; box-shadow: 5px 5px 0px var(--fg); margin-bottom: 40px; margin-top: 0;">
           COPY MASTER PROMPT ➜
         </button>
@@ -849,7 +1239,8 @@
         document.body.prepend(banner);
       }
       banner.innerHTML = '';
-      const t = document.createTextNode('⚠ ' + msg);
+      const displayMsg = typeof msg === 'object' ? JSON.stringify(msg, null, 2) : String(msg);
+      const t = document.createTextNode('⚠ ' + displayMsg);
       const x = document.createElement('button');
       x.textContent = '×';
       x.style.cssText = 'background:none;border:none;color:#fff;cursor:pointer;font-size:18px;padding:0 0 0 16px;';
@@ -869,13 +1260,16 @@
       follower.style.transform = `translate(${e.clientX - 20}px, ${e.clientY - 20}px)`;
     });
 
+    let _lastMx = 0, _lastMy = 0;
+    document.addEventListener('mousemove', (e) => { _lastMx = e.clientX; _lastMy = e.clientY; });
+
     document.querySelectorAll('button, a, textarea').forEach(el => {
       el.addEventListener('mouseenter', () => {
-        follower.style.transform = `translate(${cursor.offsetLeft - 10}px, ${cursor.offsetTop - 10}px) scale(2)`;
+        follower.style.transform = `translate(${_lastMx - 20}px, ${_lastMy - 20}px) scale(2)`;
         follower.style.background = 'rgba(255,255,255,0.1)';
       });
       el.addEventListener('mouseleave', () => {
-        follower.style.transform = `translate(${cursor.offsetLeft}px, ${cursor.offsetTop}px) scale(1)`;
+        follower.style.transform = `translate(${_lastMx - 20}px, ${_lastMy - 20}px) scale(1)`;
         follower.style.background = 'transparent';
       });
     });
@@ -930,13 +1324,14 @@
       showLoader('MAPPING NEURAL VECTORS');
 
       try {
+        const intentMode = document.getElementById('intent-selector').value;
         const res = await fetch(API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode: 'clarify', text: state.vision })
+          body: JSON.stringify({ mode: 'clarify', text: state.vision, intent_mode: intentMode })
         });
         const data = await res.json();
-        if (data.error) throw new Error(data.error);
+        if (!res.ok || data.error) throw new Error(data.error || `Server Error ${res.status}`);
 
         state.questions = data.clarification_questions || data.questions || [];
         renderQuestions();
@@ -955,13 +1350,19 @@
       showLoader('FIDELITY_SYNTHESIS');
 
       try {
+        const intentMode = document.getElementById('intent-selector').value;
         const res = await fetch(API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode: 'generate', text: state.vision, answers: state.answers })
+          body: JSON.stringify({
+            mode: 'generate',
+            text: state.vision,
+            answers: state.answers,
+            intent_mode: intentMode
+          })
         });
         const data = await res.json();
-        if (data.error) throw new Error(data.error);
+        if (!res.ok || data.error) throw new Error(data.error || `Synthesis Error ${res.status}`);
 
         state.results = data;
         renderResults();
@@ -973,24 +1374,7 @@
       }
     });
 
-    function copyText(id) {
-      let content = '';
-      if (id === 'master') {
-        content = document.getElementById('master-prompt-display').textContent;
-      } else {
-        const poster = document.getElementById(`poster-${id}`);
-        content = poster.querySelector('pre').textContent;
-      }
-      navigator.clipboard.writeText(content);
-      const btn = event.target;
-      const original = btn.textContent;
-      btn.textContent = 'COPIED! ✓';
-      btn.style.background = 'var(--accent-green)';
-      setTimeout(() => {
-        btn.textContent = original;
-        btn.style.background = id === 'master' ? 'var(--accent-yellow)' : 'var(--fg)';
-      }, 2000);
-    }
+    // copyText defined below (line ~1279)
 
     function renderQuestions() {
       const container = document.getElementById('questions-container');
@@ -1008,6 +1392,20 @@
     }
 
     function renderResults() {
+      const r = state.results;
+      const intentMode = r.intent_mode || 'PRODUCT_PLANNING';
+
+      // Visibility toggles for PRD mode
+      const isPRD = intentMode === 'PRD_GENERATION';
+      document.getElementById('master-copy-btn').style.display = isPRD ? 'none' : 'block';
+      document.getElementById('master-prompt-display').style.display = isPRD ? 'none' : 'block';
+
+      if (intentMode === 'IDEA_REFINEMENT') return renderIdeaRefinement();
+      if (intentMode === 'PRD_GENERATION') return renderPRD();
+      return renderProductPlanning();
+    }
+
+    function renderProductPlanning() {
       const display = document.getElementById('master-prompt-display');
       const grid = document.getElementById('platform-grid');
       const r = state.results;
@@ -1016,7 +1414,6 @@
       const vl = r.validation_logic || {};
 
       const safeVal = (v, fallback = 'N/A') => {
-        // All output HTML-escaped to prevent XSS from server/LLM data
         if (v === null || v === undefined) return escHtml(fallback);
         if (typeof v === 'string') return escHtml(v);
         if (typeof v === 'object') return escHtml(v.text || v.description || v.problem_description || JSON.stringify(v));
@@ -1026,16 +1423,22 @@
       const likelihoodColor = (l) => ({ HIGH: 'var(--accent-pink)', MEDIUM: 'var(--accent-yellow)', LOW: 'var(--accent-green)' }[l] || 'var(--fg)');
       const priorityColor = (p) => ({ HIGH: 'var(--accent-pink)', MEDIUM: 'var(--accent-yellow)', LOW: 'var(--accent-green)' }[p] || 'var(--fg)');
 
-      // §1 — Primary Output: Universal Master Prompt
       display.textContent = prompts.universal_master || 'Generating master prompt...';
 
-      // §2-9 — Full v3 Structured Output
       grid.innerHTML = `
-        <!-- ── §1: Header ─────────────────────────────────────────── -->
         <div style="grid-column:1/-1; margin-bottom:60px; border-bottom:var(--border-thin); padding-bottom:30px;">
-          <div style="font-size:11px; color:var(--accent-green); letter-spacing:4px; margin-bottom:12px;">RE-PROMPT v3.1 · HYBRID SEMANTIC ENFORCEMENT ENGINE</div>
-          <h2 style="font-family:Outfit; font-size:3rem; text-transform:uppercase; color:var(--accent-yellow); margin:0;">Engineering Specification</h2>
-          <p style="opacity:0.5; margin-top:8px; font-family:Syne;">TF-IDF fast-pass · LLM judge for gray zone · Consistency-coupled confidence · Server-enforced 422</p>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:20px;">
+            <div>
+              <div style="font-size:11px; color:var(--accent-green); letter-spacing:4px; margin-bottom:12px;">INTENT-AWARE ANALYTICS ENGINE</div>
+              <h2 style="font-family:Outfit; font-size:3rem; text-transform:uppercase; color:var(--accent-yellow); margin:0;">${r.intent_mode === 'PRD_GENERATION' ? 'Product Requirements' : 'Engineering Specification'}</h2>
+            </div>
+            <div style="background:var(--accent-blue); color:#fff; padding:15px 25px; border:var(--border-thin); transform:rotate(2deg);">
+              <div style="font-size:10px; font-weight:800; opacity:0.8; margin-bottom:5px;">DETECTED INTENT</div>
+              <div style="font-family:Syne; font-weight:800; font-size:1.2rem;">${escHtml(r.intent_mode || 'ANALYSIS')}</div>
+              <div style="font-size:10px; opacity:0.7; margin-top:5px;">via ${escHtml(r.classification_source || 'engine')} analysis (${Math.round((r.mode_confidence || 0.9) * 100)}% conf)</div>
+            </div>
+          </div>
+          <p style="opacity:0.5; margin-top:20px; font-family:Syne;">Hybrid intent classification · Mode-specific confidence models · Schema enforcement · 422 mismatch guard</p>
         </div>
 
         <!-- ── §2: Refined Domain Specification ─────────────────── -->
@@ -1089,7 +1492,7 @@
           </div>
         </div>
 
-        <!-- ── §5: Non-Functional Requirements ──────────────────── -->
+        <!-- ── §5: Non - Functional Requirements ──────────────────── -->
         <div style="padding:30px; background:#060606; border:1px solid #1a1a1a; margin-bottom:40px;">
           <div style="font-size:11px; color:var(--accent-pink); letter-spacing:3px; margin-bottom:20px;">§4 · NON-FUNCTIONAL REQUIREMENTS</div>
           ${(r.non_functional_requirements || []).map(n => `
@@ -1184,7 +1587,8 @@
           { key: 'logical_coherence', label: 'Logical Coherence', w: '20%', color: 'var(--accent-green)', formula: 'Score = Base(100) - Inconsistency Penalties' }
         ].map(comp => {
           const data = cb[comp.key] || {};
-          const score = data.score ?? 0;
+          const score = typeof data === 'object' ? (data.score ?? 0) : data;
+          const justification = typeof data === 'object' ? (data.justification || '') : '';
           return `
               <div style="padding:20px; background:#080808; border-top:2px solid ${comp.color};" data-tooltip="${comp.formula}">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
@@ -1194,28 +1598,30 @@
                 <div style="height:6px; background:#111; border-radius:3px; margin-bottom:10px;">
                   <div style="height:100%; width:${score}%; background:${comp.color}; border-radius:3px; transition:width 0.8s ease;"></div>
                 </div>
-                <p style="font-size:11px; opacity:0.4;">${safeVal(data.justification, '')}</p>
+                <p style="font-size:11px; opacity:0.4;">${safeVal(justification, '')}</p>
               </div>`;
         }).join('')}
           </div>
         </div>
 
-        <!-- ── §9: Generated Prompts + Quick Actions ───────────── -->
+        ${(prompts.chatgpt_specialized || prompts.copilot_coding) ? `
         <div style="grid-column:1/-1; margin-bottom:20px; border-bottom:var(--border-thin); padding-bottom:20px;">
           <h2 style="font-family: Outfit; font-size: 3rem; text-transform: uppercase; color: var(--accent-yellow);">§9 · Generated Prompts</h2>
         </div>
         ${[
-          { id: 'chatgpt', title: 'ChatGPT (Reasoning)', content: prompts.chatgpt_specialized, key: 'chatgpt_specialized', toolKey: 'chatgpt', accentColor: 'var(--accent-green)' },
-          { id: 'copilot', title: 'Copilot (Coding)', content: prompts.copilot_coding, key: 'copilot_coding', toolKey: 'copilot', accentColor: 'var(--accent-blue)' }
-        ].map((p, i) => `
+            { id: 'chatgpt_specialized', title: 'ChatGPT (Reasoning)', content: prompts.chatgpt_specialized, toolKey: 'chatgpt', accentColor: 'var(--accent-green)' },
+            { id: 'claude_specialized', title: 'Claude (Architect)', content: prompts.claude_specialized, toolKey: 'claude', accentColor: 'var(--accent-pink)' },
+            { id: 'copilot_coding', title: 'Copilot (Coding)', content: prompts.copilot_coding, toolKey: 'copilot', accentColor: 'var(--accent-blue)' }
+          ].filter(p => p.content).map((p, i) => `
         <div class="platform-poster reveal" style="transition-delay:${i * 0.1}s">
           <h2 class="platform-title" style="font-size:1.5rem; color:${p.accentColor};">${p.title}</h2>
-          <p style="font-size:0.95rem; opacity:0.8; margin-bottom:20px; min-height:80px;">${p.content ? (p.content.slice(0, 240) + '...') : 'Not generated'}</p>
+          <p style="font-size:0.95rem; opacity:0.8; margin-bottom:20px; min-height:80px;">${escHtml(p.content ? (p.content.slice(0, 240) + '...') : 'Not generated')}</p>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <button class="platform-copy" onclick="copyPlatformText('${p.id}')" aria-label="Copy ${p.title} prompt" style="text-align:center; background:var(--bg); color:var(--fg); border:2px solid var(--fg);">COPY ➜</button>
             <button onclick="openPreviewModal('${p.toolKey}', '${p.id}')" aria-label="Execute ${p.title} prompt via AI" style="text-align:center; background:${p.accentColor}; color:#000; border:none; font-weight:700; padding:10px; cursor:pointer; font-family:inherit; letter-spacing:1px; transition:opacity 0.2s;" onmouseenter="this.style.opacity=0.85" onmouseleave="this.style.opacity=1">▶ EXECUTE</button>
           </div>
         </div>`).join('')}
+        ` : ''}
 
         <!-- ── Quick Action Toolbar ──────────────────────────────── -->
         <div style="grid-column:1/-1; margin-top:20px; padding:25px; border:1px solid #1a1a1a; background:#030303;">
@@ -1223,7 +1629,13 @@
           <div class="qa-toolbar-container" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
              <button class="qa-overflow-toggle" onclick="this.nextElementSibling.classList.toggle('open')">⋯ MORE ACTIONS</button>
              <div class="qa-btns-wrapper" style="display:flex; gap:12px; flex-wrap:wrap;">
-               ${[{ k: 'chatgpt', label: 'ChatGPT', icon: '💬', color: 'var(--accent-green)', promptKey: 'chatgpt_specialized' }, { k: 'copilot', label: 'Copilot', icon: '🔧', color: 'var(--accent-blue)', promptKey: 'copilot_coding' }, { k: 'plan', label: 'Impl Plan', icon: '📋', color: 'var(--accent-yellow)', promptKey: 'universal_master' }, { k: 'test-scaffold', label: 'Test Scaffold', icon: '🧪', color: 'var(--accent-pink)', promptKey: 'universal_master' }].map(t => `<button id="qa-btn-${t.k}" onclick="executeQuickAction('${t.k}', '${t.promptKey}')" aria-label="Execute ${t.label}" title="${t.label} (server-side execution)" style="padding:12px 20px; background:transparent; border:2px solid ${t.color}; color:${t.color}; font-family:inherit; font-size:13px; font-weight:700; letter-spacing:1px; cursor:pointer; transition:all 0.2s; border-radius:2px;" onmouseenter="this.style.background='${t.color}';this.style.color='#000'" onmouseleave="this.style.background='transparent';this.style.color='${t.color}'">${t.icon} ${t.label}</button>`).join('')}
+                ${[
+          { k: 'chatgpt', label: 'ChatGPT', icon: '💬', color: 'var(--accent-green)', promptKey: 'chatgpt_specialized' },
+          { k: 'claude', label: 'Claude', icon: '🧠', color: 'var(--accent-pink)', promptKey: 'claude_specialized' },
+          { k: 'copilot', label: 'Copilot', icon: '🔧', color: 'var(--accent-blue)', promptKey: 'copilot_coding' },
+          { k: 'plan', label: 'Impl Plan', icon: '📋', color: 'var(--accent-yellow)', promptKey: 'universal_master' },
+          { k: 'test-scaffold', label: 'Test Scaffold', icon: '🧪', color: 'var(--accent-pink)', promptKey: 'universal_master' }
+        ].map(t => `<button id="qa-btn-${t.k}" onclick="executeQuickAction('${t.k}', '${t.promptKey}')" aria-label="Execute ${t.label}" title="${t.label} (server-side execution)" style="padding:12px 20px; background:transparent; border:2px solid ${t.color}; color:${t.color}; font-family:inherit; font-size:13px; font-weight:700; letter-spacing:1px; cursor:pointer; transition:all 0.2s; border-radius:2px;" onmouseenter="this.style.background='${t.color}';this.style.color='#000'" onmouseleave="this.style.background='transparent';this.style.color='${t.color}'">${t.icon} ${t.label}</button>`).join('')}
              </div>
           </div>
           <div style="font-size:10px; color:#333; margin-top:12px;">Ctrl+Enter executes ChatGPT quickly. Prompts sanitized server-side. API keys never exposed to browser.</div>
@@ -1231,10 +1643,10 @@
 
         <!-- ── §10: Simulation Mode ──────────────────────────────── -->
         <div style="grid-column:1/-1; padding:30px; border:1px solid #1a1a1a; background:#050505; margin-bottom:40px;">
-          <div style="font-size:11px; color:var(--accent-blue); letter-spacing:3px; margin-bottom:20px;">§9 · SIMULATION MODE — Confidence Sensitivity Analysis</div>
+          <div style="font-size:11px; color:var(--accent-blue); letter-spacing:3px; margin-bottom:20px;">§10 · SIMULATION MODE — Confidence Sensitivity Analysis</div>
           <button id="run-sim-btn" onclick="runSimulation()" style="background:transparent; border:1px solid var(--accent-blue); color:var(--accent-blue); padding:10px 20px; font-family:inherit; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseenter="this.style.background='var(--accent-blue)';this.style.color='#000'">▶ RUN SIMULATION</button>
           <div id="simulation-report-container">
-             <p style="opacity:0.3; font-size:11px; margin-top:15px;">Run simulation to analyze how different drift thresholds [0.70, 0.55, 0.45] impact final confidence scores.</p>
+            <p style="opacity:0.3; font-size:11px; margin-top:15px;">Run simulation to analyze how different drift thresholds [0.70, 0.55, 0.45] impact final confidence scores.</p>
           </div>
         </div>
       `;
@@ -1244,11 +1656,261 @@
       }, 100);
     }
 
+    function renderIdeaRefinement() {
+      const display = document.getElementById('master-prompt-display');
+      const grid = document.getElementById('platform-grid');
+      const r = state.results;
+      const prompts = r.generated_prompts || {};
+      const cb = r.confidence_scores || {};
+
+      // Set master prompt
+      if (prompts.universal_master) {
+        display.textContent = prompts.universal_master;
+        document.getElementById('master-copy-btn').style.display = 'block';
+        document.getElementById('master-prompt-display').style.display = 'block';
+      } else {
+        document.getElementById('master-copy-btn').style.display = 'none';
+        document.getElementById('master-prompt-display').style.display = 'none';
+      }
+
+      // Pre-filter specialty prompts — removed from idea refinement view
+
+      grid.innerHTML = `
+        <div style="grid-column:1/-1; margin-bottom:60px; border-bottom:var(--border-thin); padding-bottom:30px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:20px;">
+            <div>
+              <div style="font-size:11px; color:var(--accent-yellow); letter-spacing:4px; margin-bottom:12px;">IDEA REFINEMENT MODE</div>
+              <h2 style="font-family:Outfit; font-size:3rem; text-transform:uppercase; color:var(--accent-green); margin:0;">Concept Strategy</h2>
+            </div>
+            <div style="background:var(--accent-pink); color:#fff; padding:15px 25px; border:var(--border-thin); transform:rotate(-2deg);">
+              <div style="font-size:10px; font-weight:800; opacity:0.8; margin-bottom:5px;">INTENT: IDEA</div>
+              <div style="font-family:Syne; font-weight:800; font-size:1.2rem;">REFINEMENT</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="grid-column:1/-1; padding:40px; background:#080808; border:2px solid var(--accent-green); margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-green); letter-spacing:3px; margin-bottom:15px;">§1 · THE SHARPENED VISION</div>
+          <h3 style="font-size:2rem; line-height:1.2; margin:0; font-family:Syne;">${escHtml(r.refined_idea)}</h3>
+        </div>
+
+        <div style="padding:30px; border:1px solid #222; background:#050505;">
+          <div style="font-size:11px; color:var(--accent-yellow); letter-spacing:3px; margin-bottom:20px;">§2 · VALUE PROPOSITION</div>
+          <p style="font-size:1.1rem; line-height:1.6; opacity:0.9;">${escHtml(r.value_proposition)}</p>
+          <div style="margin-top:20px;">
+            <div style="font-size:10px; color:var(--accent-blue); margin-bottom:10px;">TARGET USERS</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              ${(r.target_users || []).map(u => `<span style="padding:4px 12px; border:1px solid #444; font-size:12px;">${escHtml(u)}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:30px; border:1px solid #222; background:#050505;">
+          <div style="font-size:11px; color:var(--accent-pink); letter-spacing:3px; margin-bottom:20px;">§3 · PROBLEM-SOLUTION FIT</div>
+          <p style="font-size:1.1rem; line-height:1.6; opacity:0.9;">${escHtml(r.problem_solution_fit)}</p>
+          <div style="margin-top:20px; font-size:0.9rem; opacity:0.6; border-top:1px solid #222; padding-top:15px;">
+            <strong>Novelty:</strong> ${escHtml(r.competitive_positioning)}
+          </div>
+        </div>
+
+        <div style="grid-column:1/-1; display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; margin:40px 0;">
+          <div style="padding:25px; background:#060606; border-top:3px solid var(--accent-blue);">
+            <div style="font-size:11px; color:var(--accent-blue); margin-bottom:15px;">THOUGHT EXPERIMENTS</div>
+            ${(r.thought_experiments || []).map(te => `<p style="font-size:0.9rem; margin-bottom:10px; opacity:0.8;">🤔 ${escHtml(te)}</p>`).join('')}
+          </div>
+          <div style="padding:25px; background:#060606; border-top:3px solid var(--accent-yellow);">
+            <div style="font-size:11px; color:var(--accent-yellow); margin-bottom:15px;">STRESS TESTS</div>
+            ${(r.critical_questions || []).map(q => `<p style="font-size:0.9rem; margin-bottom:10px; opacity:0.8;">❓ ${escHtml(q)}</p>`).join('')}
+          </div>
+        </div>
+
+        <div style="grid-column:1/-1; padding:40px; border:var(--border); background:#020202; margin-bottom:40px;">
+          <div style="font-size:11px; color:var(--accent-green); letter-spacing:3px; margin-bottom:30px;">§4 · CONCEPTUAL CONFIDENCE</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:30px;">
+            ${Object.entries(cb).map(([k, v]) => {
+        const val = typeof v === 'object' ? (v.score ?? v.value ?? 0) : v;
+        return `
+              <div>
+                <div style="font-size:10px; opacity:0.5; text-transform:uppercase;">${k.replace('_', ' ')}</div>
+                <div style="font-size:3rem; font-weight:900; color:var(--accent-green);">${val}%</div>
+                <div style="height:4px; background:#111; margin-top:8px;"><div style="height:100%; width:${val}%; background:var(--accent-green);"></div></div>
+              </div>`;
+      }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPRD() {
+      const grid = document.getElementById('platform-grid');
+      const r = state.results;
+      const doc = r.prd_document || {};
+      const ps = doc.problem_statement || {};
+      const sm = doc.success_metrics || {};
+
+      grid.innerHTML = `
+        <div style="grid-column:1/-1; margin-bottom:60px; border-bottom:var(--border-thin); padding-bottom:30px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:20px;">
+            <div>
+              <div style="font-size:11px; color:var(--fg); letter-spacing:4px; margin-bottom:12px;">PRD GENERATION MODE</div>
+              <h2 style="font-family:Outfit; font-size:3rem; text-transform:uppercase; color:var(--accent-blue); margin:0;">Product Requirements</h2>
+            </div>
+            <div style="background:#fff; color:#000; padding:15px 25px; border:4px solid #000; transform:skewX(-5deg);">
+              <div style="font-size:10px; font-weight:800; opacity:0.8; margin-bottom:5px;">DOCUMENT TYPE</div>
+              <div style="font-family:Syne; font-weight:800; font-size:1.2rem;">FORMAL PRD</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="grid-column:1/-1; background:var(--bg); color:var(--fg); padding:60px; font-family:'Inter', sans-serif; border:var(--border-thin); box-shadow: 20px 20px 0px rgba(0,0,0,0.1);">
+          <div style="max-width:800px; margin:0 auto; background:var(--bg); color:var(--fg);">
+            <h1 style="font-size:2.5rem; border-bottom:4px solid var(--accent-blue); padding-bottom:20px; margin-bottom:40px; color:var(--accent-blue);">Product Requirements Document</h1>
+            
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">1.0 Executive Summary</h3>
+              <p style="font-size:1.1rem; line-height:1.6;">${escHtml(doc.executive_summary)}</p>
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">2.0 Problem Statement</h3>
+              <p style="font-size:1.1rem; line-height:1.6;">${escHtml(ps.description)}</p>
+              <div style="margin-top:15px; background:rgba(0,0,0,0.03); padding:15px;">
+                <strong>Quantifiable Impact:</strong> ${escHtml(ps.quantifiable_impact)}<br>
+                <strong>Root Cause Analysis:</strong> ${(ps.root_cause_analysis || []).join(', ')}<br>
+                <strong>Why Current Solutions Fail:</strong> ${escHtml(ps.why_current_fail)}
+              </div>
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">3.0 Strategic Goals</h3>
+              ${(doc.goals || []).map(g => `
+                <div style="padding:10px; border-left:3px solid var(--accent-blue); margin-bottom:10px; background:rgba(0,0,0,0.01);">
+                  <strong>${escHtml(g.goal)}</strong><br>
+                  <span style="font-size:0.9rem; opacity:0.7;">Target: ${escHtml(g.target_metric)} | Timeframe: ${escHtml(g.timeframe)}</span>
+                </div>`).join('')}
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">4.0 Target Audience</h3>
+              <p style="font-size:1.1rem; line-height:1.6;">${escHtml(doc.target_audience)}</p>
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">5.0 User Personas</h3>
+              ${(doc.user_personas || []).map(p => `
+                <div style="padding:15px; border:1px solid #eee; margin-bottom:10px;">
+                  <strong>${escHtml(p.name)} (${escHtml(p.role)})</strong><br>
+                  <em>Needs:</em> ${(p.needs || []).join(', ')}<br>
+                  <em>Pain Points:</em> ${(p.pain_points || []).join(', ')}
+                </div>`).join('')}
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">6.0 User Stories</h3>
+              ${(doc.user_stories || []).map(s => `
+                <div style="padding:15px; border:1px solid #eee; margin-bottom:10px;">
+                  As a <strong>${escHtml(s.as_a)}</strong>, I want to <strong>${escHtml(s.i_want)}</strong> so that <strong>${escHtml(s.so_that)}</strong>.
+                </div>`).join('')}
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">7.0 Functional Requirements</h3>
+              ${(doc.functional_requirements || []).map(r => `
+                <div style="padding:15px; border-bottom:1px solid #eee; margin-bottom:15px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <strong>[${escHtml(r.priority)}] ${escHtml(r.id)}: ${escHtml(r.title)}</strong>
+                    <span style="font-size:10px; padding:2px 6px; background:#000; color:#fff;">IMPACT: ${escHtml(r.user_impact)}</span>
+                  </div>
+                  <p style="font-size:0.95rem; margin-bottom:10px;">${escHtml(r.description)}</p>
+                  <div style="font-size:0.85rem; padding:10px; background:rgba(0,0,0,0.02);">
+                    <strong>Acceptance Criteria:</strong>
+                    <ul style="margin:5px 0 10px 15px;">${(r.acceptance_criteria || []).map(ac => `<li>${escHtml(ac)}</li>`).join('')}</ul>
+                    <strong>Edge Cases:</strong>
+                    <span style="opacity:0.7;">${(r.edge_cases || []).join(', ')}</span>
+                  </div>
+                </div>`).join('')}
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">8.0 Non-Functional Requirements</h3>
+              ${(doc.non_functional_requirements || []).map(r => `
+                <div style="padding:10px; margin-bottom:5px; background:rgba(0,0,0,0.03);">
+                  <strong>${escHtml(r.category)}:</strong> ${escHtml(r.requirement)} (Target: ${escHtml(r.target)})
+                </div>`).join('')}
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">9.0 Technical Considerations</h3>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; font-size:0.9rem;">
+                <div style="padding:15px; border:1px solid #eee;">
+                  <strong>Deployment:</strong><br>${escHtml(doc.technical_considerations?.deployment_model)}
+                </div>
+                <div style="padding:15px; border:1px solid #eee;">
+                  <strong>Integration:</strong><br>${escHtml(doc.technical_considerations?.data_source_integration)}
+                </div>
+                <div style="padding:15px; border:1px solid #eee;">
+                  <strong>Maintenance:</strong><br>${escHtml(doc.technical_considerations?.maintenance_model)}
+                </div>
+                <div style="padding:15px; border:1px solid #eee;">
+                  <strong>Admin UI:</strong><br>${escHtml(doc.technical_considerations?.admin_interface)}
+                </div>
+              </div>
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">10.0 Success Metrics</h3>
+              ${Object.entries(sm).map(([cat, list]) => `
+                <div style="margin-bottom:15px;">
+                  <h4 style="font-size:0.8rem; text-transform:uppercase; margin-bottom:8px; color:var(--accent-blue);">${cat} METRICS</h4>
+                  <ul style="padding-left:15px; font-size:0.95rem;">
+                    ${(list || []).map(m => `<li><strong>${escHtml(m.metric)}:</strong> ${escHtml(m.target)} (via ${escHtml(m.measurement)})</li>`).join('')}
+                  </ul>
+                </div>`).join('')}
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">11.0 Assumptions & Constraints</h3>
+              <ul style="padding-left:15px;">${(doc.assumptions || []).map(a => `<li>${escHtml(a)}</li>`).join('')}</ul>
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">12.0 Out of Scope</h3>
+              <ul style="padding-left:15px;">${(doc.out_of_scope || []).map(o => `<li>${escHtml(o)}</li>`).join('')}</ul>
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">13.0 Risks & Mitigations</h3>
+              ${(doc.risks || []).map(r => `
+                <div style="padding:15px; border-left:4px solid ${r.probability === 'HIGH' ? 'var(--accent-pink)' : 'var(--accent-yellow)'}; margin-bottom:10px; background:rgba(0,0,0,0.02);">
+                  <strong>${escHtml(r.risk)}</strong> [Prob: ${escHtml(r.probability)}, Impact: ${escHtml(r.impact)}]<br>
+                  <em>Mitigation:</em> ${escHtml(r.mitigation)}
+                </div>`).join('')}
+            </section>
+
+            <section style="margin-bottom:40px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">14.0 Future Roadmap</h3>
+              <ul style="padding-left:15px;">${(doc.roadmap || []).map(i => `<li>${escHtml(i)}</li>`).join('')}</ul>
+            </section>
+
+            <section style="margin-bottom:40px; border-top:1px dashed #ccc; padding-top:20px;">
+              <h3 style="text-transform:uppercase; font-size:0.8rem; color:#666; letter-spacing:2px;">Stakeholder Questions</h3>
+              <ul style="padding-left:15px; font-style:italic;">${(doc.open_questions || []).map(q => `<li>${escHtml(q)}</li>`).join('')}</ul>
+            </section>
+
+            <div style="font-size:0.8rem; color:#888; text-align:center; margin-top:60px; border-top:1px solid #eee; padding-top:20px;">
+              Professional Evaluation-Grade PRD
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+
+
 
     function copyPlatformText(id) {
       const prompts = state.results.generated_prompts || {};
-      const map = { chatgpt: 'chatgpt_specialized', midjourney: 'midjourney_visual', copilot: 'copilot_coding' };
-      const text = prompts[map[id]];
+      const text = prompts[id];
       if (!text) return;
 
       navigator.clipboard.writeText(text);
@@ -1288,23 +1950,6 @@
       loader.style.display = 'none';
     }
 
-    // --- ACCESSIBILITY HANDLERS ---
-    function toggleHC() {
-      document.body.classList.toggle('hc');
-      localStorage.setItem('hc', document.body.classList.contains('hc') ? '1' : '0');
-    }
-
-    function changeFontSize(delta) {
-      const el = document.documentElement;
-      const current = parseFloat(getComputedStyle(el).fontSize);
-      const next = Math.min(24, Math.max(14, current + delta));
-      el.style.fontSize = next + 'px';
-      localStorage.setItem('fontSize', next);
-    }
-
-    // Restore A11y
-    if (localStorage.getItem('hc') === '1') document.body.classList.add('hc');
-    if (localStorage.getItem('fontSize')) document.documentElement.style.fontSize = localStorage.getItem('fontSize') + 'px';
 
     // --- SIMULATION & EXPORT ---
     async function runSimulation() {
@@ -1314,12 +1959,13 @@
       btn.textContent = 'SIMULATING...';
 
       try {
-        const res = await fetch('/api/simulate', {
+        const res = await fetch(API + '?mode=simulate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ data: state.results })
         });
         const report = await res.json();
+        if (!res.ok) throw new Error(report.error || `Simulation Error ${res.status}`);
         renderSimulationReport(report);
       } catch (err) {
         showError('Simulation failed: ' + err.message);
@@ -1352,18 +1998,20 @@
             `).join('')}
           </tbody>
         </table>
-      `;
+        `;
     }
 
     function exportMarkdown() {
       if (!state.results) return;
       const r = state.results;
-      const md = `# RE-PROMPT Engineering Spec\n\n` +
-        `## Domain\n${r.refined_domain_specification || r.refined_problem_statement}\n\n` +
-        `## Confidence: ${r.confidence_breakdown.final_score}%\n\n` +
+      const confidenceScore = (r.confidence_breakdown || r.confidence_scores || {}).final_score ?? 'N/A';
+      const domainText = r.refined_domain_specification || r.refined_problem_statement || (r.prd_document && r.prd_document.executive_summary) || r.refined_idea || 'N/A';
+      const md = `# Engineering Spec\n\n` +
+        `## Domain\n${domainText}\n\n` +
+        `## Confidence: ${confidenceScore}%\n\n` +
         `## Components\n` +
-        (r.core_functional_components || []).map(f => `- **${f.name}**: ${f.description} (${f.trace_status})`).join('\n') +
-        `\n\n## Master Prompt\n\`\`\`\n${r.generated_prompts.universal_master}\n\`\`\``;
+        (r.core_functional_components || []).map(f => `- **${f.name}**: ${f.description} (${f.trace_status || 'traceable'})`).join('\n') +
+        `\n\n## Master Prompt\n\`\`\`\n${(r.generated_prompts || {}).universal_master || 'N/A'}\n\`\`\`\n`;
 
       const blob = new Blob([md], { type: 'text/markdown' });
       const url = URL.createObjectURL(blob);
@@ -1403,14 +2051,19 @@
       btn.disabled = true;
       document.getElementById('modal-response-section').style.display = 'none';
       try {
-        const resp = await fetch('/api/execute-tool', {
+        const resp = await fetch(API + '?mode=execute-tool', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tool: _activeToolKey, prompt, prompt_meta: { source: 'preview-modal' } })
         });
         const data = await resp.json();
         if (!resp.ok || !data.ok) throw new Error(data.error || 'Server error');
-        document.getElementById('modal-response').textContent = data.toolResponse;
+        if (data.planData) {
+          window.__lastPlanData = data.planData;
+          renderPlanReport(data.planData);
+        } else {
+          document.getElementById('modal-response').textContent = data.toolResponse;
+        }
         document.getElementById('modal-response-section').style.display = 'block';
         btn.textContent = 'DONE — Send Again';
         btn.disabled = false;
@@ -1423,8 +2076,113 @@
     }
 
     async function executeQuickAction(toolKey, promptKey) {
-      if (!state.results) { alert('Run analysis first.'); return; }
+      if (!state.results) { showError('Run analysis first — generate a result before executing tools.'); return; }
       openPreviewModal(toolKey, promptKey);
+    }
+
+    function renderPlanReport(plan) {
+      const container = document.getElementById('modal-response');
+      const phases = plan.phases || [];
+      const tasks = plan.tasks || [];
+      const ciClass = (c) => 'ci-badge ci-badge--' + (c || 'none').replace(/\s/g, '');
+      const prClass = (p) => 'priority-badge priority-badge--' + (p || 'P2');
+
+      // Group tasks by phase
+      const phaseMap = new Map();
+      phases.forEach(p => phaseMap.set(p.id, { ...p, tasks: [] }));
+      const ungrouped = [];
+      tasks.forEach(t => {
+        const ph = phaseMap.get(t.phase_id);
+        if (ph) ph.tasks.push(t); else ungrouped.push(t);
+      });
+
+      let html = `<div class="plan-report">`;
+
+      // Summary bar
+      html += `<div style="font-size:0.95rem; opacity:0.7; margin-bottom:16px; line-height:1.5;">${escHtml(plan.summary || '')}</div>`;
+      html += `<div class="plan-summary-bar">
+        <div class="plan-stat"><div class="plan-stat-value">${plan.total_hours || 0}</div><div class="plan-stat-label">TOTAL HOURS</div></div>
+        <div class="plan-stat"><div class="plan-stat-value">${phases.length}</div><div class="plan-stat-label">PHASES</div></div>
+        <div class="plan-stat"><div class="plan-stat-value">${tasks.length}</div><div class="plan-stat-label">TASKS</div></div>
+        <div class="plan-stat"><div class="plan-stat-value" style="color:var(--accent-pink);">${tasks.filter(t => (t.priority || '').toUpperCase() === 'P0').length}</div><div class="plan-stat-label">CRITICAL (P0)</div></div>
+      </div>`;
+
+      // Render each phase
+      for (const [phaseId, phase] of phaseMap) {
+        if (phase.tasks.length === 0) continue;
+        const phaseHours = phase.tasks.reduce((s, t) => s + (t.hours || 0), 0);
+        html += `<div class="plan-phase-header">
+          <span class="plan-phase-id">${escHtml(phase.id)}</span>
+          <span class="plan-phase-name">${escHtml(phase.name)}</span>
+          <span class="plan-phase-desc">${escHtml(phase.description || '')}</span>
+          <span class="plan-phase-hours">${phaseHours}h</span>
+        </div>`;
+        html += buildTaskTable(phase.tasks, ciClass, prClass);
+      }
+
+      // Ungrouped
+      if (ungrouped.length > 0) {
+        html += `<div class="plan-phase-header"><span class="plan-phase-id">—</span><span class="plan-phase-name">Ungrouped Tasks</span></div>`;
+        html += buildTaskTable(ungrouped, ciClass, prClass);
+      }
+
+      html += `<button class="plan-export-btn" onclick="exportPlanMarkdown()">📥 EXPORT PLAN AS MARKDOWN</button>`;
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    function buildTaskTable(tasks, ciClass, prClass) {
+      let html = `<table class="plan-table">
+        <thead><tr><th>ID</th><th>TASK</th><th>HOURS</th><th>DEPENDS ON</th><th>CI CHECK</th><th>PRIORITY</th></tr></thead><tbody>`;
+      for (const t of tasks) {
+        const deps = (t.depends_on || []);
+        const ci = (t.ci_check || 'none').trim().split('|')[0].trim();
+        const pr = (t.priority || 'P2').trim().split('|')[0].trim();
+        html += `<tr>
+          <td style="font-family:monospace; color:var(--accent-blue); font-weight:700;">${escHtml(t.id)}</td>
+          <td><strong>${escHtml(t.title)}</strong>${t.description ? '<br><span style="opacity:0.5; font-size:11px;">' + escHtml(t.description) + '</span>' : ''}</td>
+          <td style="font-weight:700; color:var(--accent-yellow);">${t.hours || 0}h</td>
+          <td>${deps.length > 0 ? deps.map(d => '<span class="plan-dep">← ' + escHtml(d) + '</span>').join(' ') : '<span style="opacity:0.3;">—</span>'}</td>
+          <td><span class="${ciClass(ci)}">${escHtml(ci)}</span></td>
+          <td><span class="${prClass(pr)}">${escHtml(pr)}</span></td>
+        </tr>`;
+      }
+      html += `</tbody></table>`;
+      return html;
+    }
+
+    function exportPlanMarkdown() {
+      const data = document.querySelector('.plan-report');
+      if (!data) return;
+      // Reconstruct from last plan response (stored on window)
+      const plan = window.__lastPlanData;
+      if (!plan) { showError('No plan data to export.'); return; }
+      const phases = plan.phases || [];
+      const tasks = plan.tasks || [];
+      let md = `# Implementation Plan\n\n`;
+      md += `> ${plan.summary || 'Generated implementation plan'}\n\n`;
+      md += `**Total Hours:** ${plan.total_hours} | **Phases:** ${phases.length} | **Tasks:** ${tasks.length}\n\n`;
+
+      const phaseMap = new Map();
+      phases.forEach(p => phaseMap.set(p.id, { ...p, tasks: [] }));
+      tasks.forEach(t => { const ph = phaseMap.get(t.phase_id); if (ph) ph.tasks.push(t); });
+
+      for (const [, phase] of phaseMap) {
+        if (phase.tasks.length === 0) continue;
+        const hrs = phase.tasks.reduce((s, t) => s + (t.hours || 0), 0);
+        md += `## ${phase.id}: ${phase.name} (${hrs}h)\n`;
+        if (phase.description) md += `${phase.description}\n`;
+        md += `\n| ID | Task | Hours | Depends On | CI | Priority |\n|---|---|---|---|---|---|\n`;
+        for (const t of phase.tasks) {
+          md += `| ${t.id} | ${t.title} | ${t.hours}h | ${(t.depends_on || []).join(', ') || '—'} | ${t.ci_check || 'none'} | ${t.priority || 'P2'} |\n`;
+        }
+        md += `\n`;
+      }
+
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `impl-plan-${Date.now()}.md`; a.click();
     }
 
     document.addEventListener('keydown', function (e) {

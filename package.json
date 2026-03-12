@@ -1,0 +1,25 @@
+{
+    "name": "re-prompt",
+    "version": "3.3.0",
+    "description": "Re-Prompt Kinetic Neural Engine — AI-powered vision-to-prompt synthesis",
+    "type": "module",
+    "main": "dev-server.mjs",
+    "scripts": {
+        "start": "NODE_ENV=production node dev-server.mjs",
+        "dev": "node dev-server.mjs",
+        "test": "node --test tests/v3.1.test.mjs",
+        "test:integration": "node --test tests/api.test.mjs",
+        "test:all": "node --test tests/v3.1.test.mjs && node --test tests/api.test.mjs"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "keywords": [
+        "ai",
+        "prompt-engineering",
+        "groq",
+        "nlp"
+    ],
+    "license": "MIT",
+    "private": true
+}

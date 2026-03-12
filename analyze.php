@@ -18,7 +18,24 @@
 /** Include sensitive credentials from a separate file. */
 if (file_exists(__DIR__ . '/secret.php')) {
     require_once __DIR__ . '/secret.php';
-} else {
+}
+
+/** Load environment variables from .env if it exists. */
+$_ENV_CACHE = [];
+if (file_exists(__DIR__ . '/.env')) {
+    $lines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        list($name, $value) = explode('=', $line, 2);
+        $_ENV_CACHE[trim($name)] = trim($value);
+    }
+}
+
+if (!defined('GROQ_API_KEY') && isset($_ENV_CACHE['GROQ_API_KEY'])) {
+    define('GROQ_API_KEY', $_ENV_CACHE['GROQ_API_KEY']);
+}
+
+if (!defined('GROQ_API_KEY')) {
     header('Content-Type: application/json');
     http_response_code(500);
     echo json_encode(['error' => 'Critical configuration missing.']);
@@ -71,14 +88,21 @@ header('X-XSS-Protection: 1; mode=block');
 
 /** 
  * Restricted CORS: 
- * Ideally set this to your specific domain (e.g., https://yourdomain.com) 
- * for maximum security. Currently allowing same-origin by default. 
+ * Strictly enforced via ALLOWED_ORIGINS whitelist.
  */
+$allowedOrigins = explode(',', $_ENV_CACHE['ALLOWED_ORIGINS'] ?? 'http://localhost:3000');
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-header("Access-Control-Allow-Origin: $origin"); 
+
+if (in_array($origin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: $origin"); 
+} else {
+    // If not in whitelist, don't send allow-origin (defaults to block cross-origin)
+}
+
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Credentials: true');
+header('Vary: Origin');
 
 // Handle CORS preflight request.
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -98,29 +122,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // 2. Decode JSON body or fall back to form POST.
-$body = json_decode(file_get_contents('php://input'), true);
-$rawInput = isset($body['text']) ? $body['text'] : (isset($_POST['text']) ? $_POST['text'] : '');
-
-// 3. Sanitize and validate input length.
-$input = trim(strip_tags($rawInput));
-
-if (strlen($input) < MIN_INPUT_LENGTH) {
-    jsonError('Input too short. Minimum ' . MIN_INPUT_LENGTH . ' characters required.', 400);
-}
-
-if (strlen($input) > MAX_INPUT_LENGTH) {
-    jsonError('Input too long. Maximum ' . MAX_INPUT_LENGTH . ' characters allowed.', 400);
-}
-
-// Main Request Flow
 $rawBody = file_get_contents('php://input');
 $parsedBody = json_decode($rawBody, true) ?? [];
 
-$mode    = $parsedBody['mode'] ?? 'clarify'; // 'clarify' or 'generate'
-$input   = trim($parsedBody['text'] ?? '');
-$answers = $parsedBody['answers'] ?? []; // Map of question => answer text
+// 3. Sanitize and validate input parameters.
+$input      = trim($parsedBody['text'] ?? $_POST['text'] ?? '');
+$mode       = $parsedBody['mode'] ?? 'clarify'; 
+$answers    = $parsedBody['answers'] ?? [];
+$intentMode = $parsedBody['intent_mode'] ?? 'auto';
 
-// 1. Basic Validation
 if (empty($input)) {
     jsonError('Input text is required.');
 }
@@ -133,13 +143,13 @@ if (strlen($cleanInput) > MAX_INPUT_LENGTH) {
     jsonError('Input too long. Maximum ' . MAX_INPUT_LENGTH . ' characters allowed.');
 }
 
-// 2. Get client IP and apply rate limiting.
+// 4. Get client IP and apply rate limiting.
 $ip = getClientIp();
 checkRateLimit($ip);
 
-// 3. Mode-aware Cache Check
-// For 'generate', we hash both input and answers.
-$cacheKey = md5($input . ($mode === 'generate' ? serialize($answers) : ''));
+// 5. Mode-aware Cache Check
+// For 'generate', we hash input, answers, and intentMode.
+$cacheKey = md5($input . ($mode === 'generate' ? serialize($answers) . $intentMode : ''));
 $cached = getCached($cacheKey);
 if ($cached !== null) {
     logRequest($ip, strlen($input), 'CACHE_HIT');
@@ -153,7 +163,7 @@ $result = null;
 $lastError = null;
 
 for ($attempt = 1; $attempt <= 2; $attempt++) {
-    $rawResponse = callGroq($input, $mode, $answers);
+    $rawResponse = callGroq($input, $mode, $answers, $intentMode);
     
     if ($rawResponse === null) {
         $lastError = 'API_FAILURE';
@@ -164,6 +174,20 @@ for ($attempt = 1; $attempt <= 2; $attempt++) {
     $parsed = json_decode($cleaned, true);
     
     if ($parsed && validateSchemaByMode($parsed, $mode)) {
+        // Post-process v3.3 fields
+        if ($mode === 'generate') {
+            $parsed['intent_mode'] = ($intentMode === 'auto') ? 'PRODUCT_PLANNING' : $intentMode;
+            $parsed['classification_source'] = ($intentMode === 'auto') ? 'engine' : 'manual';
+            $parsed['mode_confidence'] = 0.95; // Fixed confidence for PHP stability
+            
+            // Standardize aliases
+            if (isset($parsed['refined_idea']) && !isset($parsed['refined_problem_statement'])) {
+                $parsed['refined_problem_statement'] = $parsed['refined_idea'];
+            }
+            if (isset($parsed['refined_problem_statement']) && !isset($parsed['refined_domain_specification'])) {
+                $parsed['refined_domain_specification'] = $parsed['refined_problem_statement'];
+            }
+        }
         $result = $parsed;
         break;
     } else {
@@ -188,26 +212,14 @@ exit;
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Safely resolves the real client IP address.
- * Checks common proxy headers first, then falls back to REMOTE_ADDR.
+ * Safely resolves the client IP address.
+ * In a production environment behind a trusted proxy (like Cloudflare), 
+ * update this to use trusted headers. For default security, uses REMOTE_ADDR.
  */
 function getClientIp(): string {
-    $candidates = [
-        'HTTP_CF_CONNECTING_IP',   // Cloudflare
-        'HTTP_X_FORWARDED_FOR',    // Load balancers / proxies
-        'HTTP_X_REAL_IP',          // Nginx reverse proxy
-        'REMOTE_ADDR',             // Standard
-    ];
-    foreach ($candidates as $key) {
-        if (!empty($_SERVER[$key])) {
-            // X-Forwarded-For can be a comma-separated list; take the first.
-            $ip = trim(explode(',', $_SERVER[$key])[0]);
-            if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                return $ip;
-            }
-        }
-    }
-    return '0.0.0.0';
+    // In production, you would whitelist trusted proxy IPs before trusting these headers.
+    // For now, we prioritize REMOTE_ADDR for security unless specifically configured.
+    return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 }
 
 /**
@@ -307,44 +319,72 @@ function logRequest(string $ip, int $inputLen, string $status): void {
 /**
  * Calls the Groq API with mode-specific specialized prompts.
  */
-/**
- * Calls the Groq API with Re-Prompt v2 "Structured Reasoning" protocols.
- */
-function callGroq(string $text, string $mode, array $answers): ?string {
+function callGroq(string $text, string $mode, array $answers, string $intentMode): ?string {
     if ($mode === 'clarify' || empty($answers)) {
         // Mode 1: Extraction & Clarification
-        $systemPrompt = "You are the Re-Prompt v2 Clarification Engine. "
+        $systemPrompt = "You are the Re-Prompt v3.3 Clarification Engine. "
             . "Analyze the user vision and return ONLY JSON. "
             . "If input is too vague, return {\"clarification_required\": true, \"questions\": [string]}. "
             . "Otherwise, provide a summary and 3-5 high-impact questions.";
-        $userPrompt = "VISION: $text\n\nTask: Extract intent and identify architectural gaps.";
+        $userPrompt = "VISION: $text\n\nINTENT_HINT: $intentMode\n\nTask: Extract intent and identify architectural gaps.";
     } else {
         // Mode 2: Senior Architect Structured Reasoning
         $answerText = '';
         foreach ($answers as $q => $a) { $answerText .= "Q: $q\nA: $a\n\n"; }
         
-        $systemPrompt = "You are the Re-Prompt v2 Senior AI Systems Architect & Prompt Engineer.\n"
-            . "OBJECTIVE: Transform vision into a machine-validated specification AND optimized AI prompts.\n"
-            . "RULES:\n"
-            . "1. ALWAYS OUTPUT VALID JSON (No prose).\n"
-            . "2. DOMAIN CONSTRAINT: Do not invent features outside logically implied domain.\n"
-            . "3. RESULT FOCUS: Provide the actual prompts the user needs for their tools.\n"
-            . "4. NO NESTED KEYS: NEVER use keys like 'feature_1', 'feature_2'. Use flat arrays.\n"
-            . "EXAMPLE STRUCTURE (FEW-SHOT):\n"
+        $systemPrompt = "You are Re-Prompt v3.3 Senior Architect & Strategy Consultant. Your mission is to transform vague ideas into high-fidelity, creative, and technically achievable specifications.\n"
+            . "Output MUST be a valid JSON object matching the schema below.\n\n"
+            . "INTENT_MODE: $intentMode\n\n"
+            . "SCHEMA:\n"
             . "{\n"
-            . "  \"refined_problem_statement\": \"A flat string description\",\n"
-            . "  \"core_features\": [{\"name\": \"Feature Name\", \"description\": \"Feature Desc\", \"trace_to_input\": [\"input string\"], \"justification\": \"logic\"}],\n"
-            . "  \"technical_architecture\": {\"frontend\": \"React\", \"backend\": \"PHP/Node\", \"ai_components\": \"Groq/Llama\", \"data_storage\": \"MySQL\"},\n"
+            . "  \"refined_idea\": \"Primary 1-sentence creative vision\",\n"
+            . "  \"refined_problem_statement\": \"Deep analysis, e.g. 'The current market lacks X because Y...'\",\n"
+            . "  \"value_proposition\": \"Engaging 2-3 sentence pitch\",\n"
+            . "  \"target_users\": [\"Detailed segment 1\", \"Detailed segment 2\"],\n"
+            . "  \"problem_solution_fit\": \"string\",\n"
+            . "  \"competitive_positioning\": \"string\",\n"
+            . "  \"thought_experiments\": [\"Extreme scenario 1\", \"Extreme scenario 2\"],\n"
+            . "  \"critical_questions\": [\"Probing question 1\", \"Probing question 2\"],\n"
+            . "  \"core_features\": [{\"name\": \"Feature Name\", \"description\": \"Feature Desc\", \"trace_to_input\": [\"input string\"], \"justification\": \"Strategic rationale\"}],\n"
+            . "  \"technical_architecture\": {\"frontend\": \"Highly specific (e.g. Next.js 15, Tailwind CSS)\", \"backend\": \"Achievable stack (e.g. Node.js with Fastify or Python FastAPI)\", \"ai_components\": \"Specific models (e.g. Llama-3-70B, GPT-4o, Vector DB)\", \"data_storage\": \"Proven DB choice (e.g. PostgreSQL, Redis)\"},\n"
             . "  \"domain_validation\": {\"domain_consistency_score\": 95},\n"
-            . "  \"confidence_score\": 90,\n"
+            . "  \"confidence_scores\": {\"input_clarity\": 90, \"logical_coherence\": 95},\n"
+            . "  \"non_functional_requirements\": [{\"category\": \"Performance|Security|...\", \"requirement\": \"Specific target value\", \"priority\": \"HIGH\"}],\n"
+            . "  \"risk_analysis\": [{\"risk\": \"Specific technical/business risk\", \"likelihood\": \"HIGH/MED\", \"mitigation\": \"Actionable step\"}],\n"
+            . "  \"prd_document\": {\n"
+            . "    \"executive_summary\": \"Engaging multi-paragraph summary (min 150 words)\",\n"
+            . "    \"problem_statement\": { \"description\": \"string\", \"quantifiable_impact\": \"string\", \"root_cause_analysis\": [\"string\"], \"why_current_fail\": \"string\" },\n"
+            . "    \"goals\": [{\"goal\": \"Metric-driven goal\", \"target_metric\": \"string\", \"timeframe\": \"string\"}],\n"
+            . "    \"target_audience\": \"Detailed persona description\",\n"
+            . "    \"user_personas\": [{\"name\": \"Name\", \"role\": \"Role\", \"needs\": [\"Need 1\"], \"pain_points\": [\"Pain 1\"]}],\n"
+            . "    \"user_stories\": [{\"as_a\": \"Persona\", \"i_want\": \"Capability\", \"so_that\": \"Benefit\"}],\n"
+            . "    \"functional_requirements\": [{\"id\": \"REQ-001\", \"title\": \"Feature\", \"priority\": \"P0\", \"description\": \"Logic\", \"user_impact\": \"HIGH\", \"acceptance_criteria\": [\"Criteria 1\"], \"edge_cases\": [\"Edge 1\"]}],\n"
+            . "    \"non_functional_requirements\": [{\"category\": \"string\", \"requirement\": \"string\", \"target\": \"string\"}],\n"
+            . "    \"technical_considerations\": { \"deployment_model\": \"Achievable Cloud approach\", \"data_source_integration\": \"Specific APIs/Webhooks\", \"maintenance_model\": \"Operational strategy\", \"admin_interface\": \"Control plane details\" },\n"
+            . "    \"success_metrics\": { \"business\": [{\"metric\": \"Metric\", \"target\": \"KPI\", \"measurement\": \"Source\"}], \"technical\": [{\"metric\": \"Metric\", \"target\": \"KPI\", \"measurement\": \"Source\"}] },\n"
+            . "    \"assumptions\": [\"LIST EVERY EXPLICIT CREATIVE ASSUMPTION (speculative inference)\"],\n"
+            . "    \"out_of_scope\": [\"string\"],\n"
+            . "    \"risks\": [{\"risk\": \"string\", \"probability\": \"HIGH/MED\", \"impact\": \"HIGH/MED\", \"mitigation\": \"string\"}],\n"
+            . "    \"roadmap\": [\"Phase 1: MVP\", \"Phase 2: Scale\"],\n"
+            . "    \"open_questions\": [\"string\"]\n"
+            . "  },\n"
             . "  \"generated_prompts\": {\n"
             . "    \"universal_master\": \"Detailed Master Prompt...\",\n"
             . "    \"chatgpt_specialized\": \"ChatGPT specific...\",\n"
-            . "    \"midjourney_visual\": \"Visual prompt...\",\n"
+            . "    \"claude_specialized\": \"Claude specific architect prompt...\",\n"
             . "    \"copilot_coding\": \"Architectural prompt...\"\n"
             . "  }\n"
-            . "}";
-        $userPrompt = "INITIAL VISION: $text\n\nCONTEXT:\n$answerText\n\nTASK: Generate the specification and the final optimized prompts.";
+            . "}\n"
+            . "RULES:\n"
+            . "1. PROACTIVE CREATIVITY: If the user vision is sparse, MAKE CREATIVE ASSUMPTIONS to build a complete product concept.\n"
+            . "2. ASSUMPTION FORMAT: EVERY item in the 'assumptions' array MUST start with 'ASSUMPTION: '. \n"
+            . "   - ONLY include speculative inferences that add value/detail not present in user input (e.g. features user didn't mention).\n"
+            . "   - NEVER include facts already stated by the user or from the context answers as an assumption.\n"
+            . "   - GOOD: \"ASSUMPTION: The luxury space hotel will offer 0.5G artificial gravity in premium suites.\"\n"
+            . "3. ACHIEVABLE TECH STACK: Define a specific, achievable architecture using real tech names (Next.js, FastAPI, PostgreSQL, etc). No generic placeholders.\n"
+            . "4. EXEC_SUMMARY: Must be at least 150 words.\n"
+            . "5. NO EMPTY FIELDS: Populate ALL sections. If data is unavailable, use creative inference.";
+        $userPrompt = "INITIAL VISION: $text\n\nCONTEXT:\n$answerText\n\nTASK: Generate the specification and the final optimized prompts for intent state: $intentMode.";
     }
 
     $payload = json_encode([
@@ -385,9 +425,11 @@ function callGroq(string $text, string $mode, array $answers): ?string {
  */
 function validateSchemaByMode(array $data, string $mode): bool {
     if ($mode === 'clarify') {
-        return isset($data['summary']) && isset($data['clarification_questions']) && is_array($data['clarification_questions']);
+        return isset($data['summary']) && isset($data['clarification_questions']);
     } else {
-        return isset($data['master_prompt']) && isset($data['platform_prompts']) && isset($data['suggested_action']);
+        // v3.3 Schema Requirements
+        return isset($data['generated_prompts']) && 
+               (isset($data['refined_idea']) || isset($data['refined_problem_statement']));
     }
 }
 

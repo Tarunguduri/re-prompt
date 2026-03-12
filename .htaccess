@@ -1,7 +1,7 @@
 # ── RePrompt — Apache 2.4 Hardened Config ─────────────────────────────────────
 
 # Block sensitive files
-<FilesMatch "^(secret\.php|.*\.log|.*\.json)$">
+<FilesMatch "^(secret\.php|secret|.*\.log|.*\.json|.*\.db|.*\.mjs|\.env.*)$">
     Require all denied
 </FilesMatch>
 
