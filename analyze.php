@@ -323,9 +323,9 @@ function callGroq(string $text, string $mode, array $answers, string $intentMode
     if ($mode === 'clarify' || empty($answers)) {
         // Mode 1: Extraction & Clarification
         $systemPrompt = "You are the Re-Prompt v3.3 Clarification Engine. "
-            . "Analyze the user vision and return ONLY JSON. "
-            . "If input is too vague, return {\"clarification_required\": true, \"questions\": [string]}. "
-            . "Otherwise, provide a summary and 3-5 high-impact questions.";
+            . "Analyze the user vision and return ONLY JSON: "
+            . "{\"summary\": \"Analysis of vision\", \"clarification_questions\": [\"question 1\", \"question 2\"]}. "
+            . "Identify technical gaps and strategic ambiguities.";
         $userPrompt = "VISION: $text\n\nINTENT_HINT: $intentMode\n\nTask: Extract intent and identify architectural gaps.";
     } else {
         // Mode 2: Senior Architect Structured Reasoning
@@ -425,7 +425,8 @@ function callGroq(string $text, string $mode, array $answers, string $intentMode
  */
 function validateSchemaByMode(array $data, string $mode): bool {
     if ($mode === 'clarify') {
-        return isset($data['summary']) && isset($data['clarification_questions']);
+        return isset($data['summary']) && 
+               (isset($data['clarification_questions']) || isset($data['questions']));
     } else {
         // v3.3 Schema Requirements
         return isset($data['generated_prompts']) && 
