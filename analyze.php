@@ -257,7 +257,7 @@ for ($attempt = 1; $attempt <= 2; $attempt++) {
         if ($mode === 'generate') {
             $parsed['intent_mode'] = ($intentMode === 'auto') ? 'PRODUCT_PLANNING' : $intentMode;
             $parsed['classification_source'] = ($intentMode === 'auto') ? 'engine' : 'manual';
-            $parsed['mode_confidence'] = 0.95; // Fixed confidence for PHP stability
+            $parsed['mode_confidence'] = 0.95; 
             
             // Standardize aliases
             if (isset($parsed['refined_idea']) && !isset($parsed['refined_problem_statement'])) {
@@ -266,6 +266,13 @@ for ($attempt = 1; $attempt <= 2; $attempt++) {
             if (isset($parsed['refined_problem_statement']) && !isset($parsed['refined_domain_specification'])) {
                 $parsed['refined_domain_specification'] = $parsed['refined_problem_statement'];
             }
+
+            // --- v3.3 ADVANCED VALIDATION SUITE ---
+            $validation = detectDomainDrift($parsed, $input);
+            $confidence = recomputeConfidence($parsed, $validation);
+            
+            $parsed['validation_logic'] = $validation;
+            $parsed['confidence_breakdown'] = $confidence;
         }
         $result = $parsed;
         break;
@@ -425,9 +432,8 @@ function callGroq(string $text, string $mode, array $answers, string $intentMode
             . "  \"thought_experiments\": [\"Extreme scenario 1\", \"Extreme scenario 2\"],\n"
             . "  \"critical_questions\": [\"Probing question 1\", \"Probing question 2\"],\n"
             . "  \"core_features\": [{\"name\": \"Feature Name\", \"description\": \"Feature Desc\", \"trace_to_input\": [\"input string\"], \"justification\": \"Strategic rationale\"}],\n"
-            . "  \"technical_architecture\": {\"frontend\": \"Highly specific (e.g. Next.js 15, Tailwind CSS)\", \"backend\": \"Achievable stack (e.g. Node.js with Fastify or Python FastAPI)\", \"ai_components\": \"Specific models (e.g. Llama-3-70B, GPT-4o, Vector DB)\", \"data_storage\": \"Proven DB choice (e.g. PostgreSQL, Redis)\"},\n"
-            . "  \"domain_validation\": {\"domain_consistency_score\": 95},\n"
-            . "  \"confidence_scores\": {\"input_clarity\": 90, \"logical_coherence\": 95},\n"
+            . "  \"technical_architecture\": {\"frontend\": \"Highly specific (e.g. Next.js 15, Tailwind CSS)\", \"backend\": \"Achievable stack (e.g. Node.js with Fastify or Python FastAPI)\", \"ai_components\": \"Specific models (e.g. Llama-3-70B, GPT-4o, Vector DB)\", \"data_storage\": \"Proven DB choice (e.g. PostgreSQL, Redis)\", \"deployment\": \"Specific hosting/cloud plan (e.g. Vercel, AWS Lambda, Hostinger VPS)\"},\n"
+            . "  \"confidence_scores\": {\"input_clarity\": 0-100, \"logical_coherence\": 0-100},\n"
             . "  \"non_functional_requirements\": [{\"category\": \"Performance|Security|...\", \"requirement\": \"Specific target value\", \"priority\": \"HIGH\"}],\n"
             . "  \"risk_analysis\": [{\"risk\": \"Specific technical/business risk\", \"likelihood\": \"HIGH/MED\", \"mitigation\": \"Actionable step\"}],\n"
             . "  \"prd_document\": {\n"
@@ -554,4 +560,117 @@ function jsonError(string $message, int $code = 400): void {
     http_response_code($code);
     echo json_encode(['error' => $message]);
     exit;
+}
+// ═══════════════════════════════════════════════════════════════════════════════
+// Advanced Validation Logic (Ported from Node.js)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function tokenize(string $text): array {
+    $stopWords = ['the', 'a', 'an', 'is', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'with', 'that', 'this', 'it', 'be', 'are', 'was', 'were', 'by', 'as', 'from', 'have', 'has', 'not', 'but', 'so', 'its', 'will', 'can', 'should'];
+    $clean = preg_replace('/[^\w\s]/', ' ', strtolower($text));
+    $tokens = preg_split('/\s+/', $clean, -1, PREG_SPLIT_NO_EMPTY);
+    return array_filter($tokens, fn($t) => strlen($t) > 2 && !in_array($t, $stopWords));
+}
+
+function buildTfIdfVector(array $tokens): array {
+    $tf = array_count_values($tokens);
+    $count = count($tokens) ?: 1;
+    $vector = [];
+    foreach ($tf as $token => $freq) {
+        $vector[$token] = $freq / $count;
+    }
+    return $vector;
+}
+
+function calculateCosineSimilarity(array $vecA, array $vecB): float {
+    $dot = 0; $normA = 0; $normB = 0;
+    $allTokens = array_unique(array_merge(array_keys($vecA), array_keys($vecB)));
+    foreach ($allTokens as $t) {
+        $vA = $vecA[$t] ?? 0;
+        $vB = $vecB[$t] ?? 0;
+        $dot += $vA * $vB;
+        $normA += $vA * $vA;
+        $normB += $vB * $vB;
+    }
+    if ($normA == 0 || $normB == 0) return 0;
+    return $dot / (sqrt($normA) * sqrt($normB));
+}
+
+function detectDomainDrift(array $data, string $userInput): array {
+    $features = $data['core_features'] ?? $data['core_functional_components'] ?? [];
+    $inputTokens = tokenize($userInput);
+    $inputVector = buildTfIdfVector($inputTokens);
+    
+    $traceableCount = 0;
+    $driftInstances = [];
+    $speculativeFeatures = [];
+
+    foreach ($features as &$feat) {
+        $desc = $feat['description'] ?? $feat['name'] ?? '';
+        $featTokens = tokenize($desc);
+        $featVector = buildTfIdfVector($featTokens);
+        
+        $score = calculateCosineSimilarity($inputVector, $featVector);
+        // Using a more lenient threshold for PHP similarity engine to avoid false positives on Speculative
+        $status = $score >= 0.1 ? 'traceable' : ($score >= 0.05 ? 'assumption' : 'speculative');
+        
+        $feat['trace_score'] = $score;
+        $feat['trace_status'] = $status;
+        
+        if ($status === 'traceable') $traceableCount++;
+        else if ($status === 'speculative') {
+            $driftInstances[] = "[SPECULATIVE] " . ($feat['name'] ?? 'Feature');
+            $speculativeFeatures[] = $feat['name'] ?? 'Feature';
+        }
+    }
+
+    $total = count($features);
+    $consistency = $total > 0 ? round(($traceableCount / $total) * 100, 1) : 100;
+
+    return [
+        'domain_drift_instances' => $driftInstances,
+        'speculative_features_flagged' => $speculativeFeatures,
+        'internal_consistency_check' => empty($driftInstances) ? 'PASS' : 'PARTIAL',
+        'domain_consistency_computed' => $consistency,
+        'llm_judge_calls' => 0, 
+        'engine' => 'tfidf-php-v1'
+    ];
+}
+
+function recomputeConfidence(array $data, array $validation): array {
+    $scores = $data['confidence_scores'] ?? $data['confidence_breakdown'] ?? [];
+    $nfrs = $data['non_functional_requirements'] ?? [];
+    
+    $IC = $scores['input_clarity'] ?? 80;
+    $DC = $validation['domain_consistency_computed'] ?? 100;
+    
+    $expected = ['security', 'performance', 'scalability', 'reliability', 'usability'];
+    $covered = 0;
+    foreach ($expected as $cat) {
+        foreach ($nfrs as $nfr) {
+            $content = strtolower(($nfr['category'] ?? '') . ($nfr['requirement'] ?? ''));
+            if (strpos($content, $cat) !== false) {
+                $covered++;
+                break;
+            }
+        }
+    }
+    $RC = (count($expected) > 0) ? ($covered / count($expected)) * 100 : 100;
+    $LC = $scores['logical_coherence'] ?? 90;
+    
+    $assumptions = $data['prd_document']['assumptions'] ?? [];
+    $penalty = count($assumptions) * 2.5;
+    
+    $final = (0.3 * $IC) + (0.3 * $DC) + (0.2 * $RC) + (0.2 * $LC) - $penalty;
+    $final = max(0, min(100, round($final, 1)));
+
+    return [
+        'input_clarity' => ['score' => $IC, 'justification' => 'Calculated from extraction phase'],
+        'domain_consistency' => ['score' => $DC, 'justification' => 'Semantic trace vs original vision'],
+        'requirement_completeness' => ['score' => $RC, 'justification' => "$covered/" . count($expected) . " NFR categories covered"],
+        'logical_coherence' => ['score' => $LC, 'justification' => $validation['internal_consistency_check']],
+        'assumption_penalty' => -$penalty,
+        'final_score' => $final,
+        'server_computed' => true
+    ];
 }
