@@ -394,7 +394,7 @@ function callGroq(string $text, string $mode, array $answers, string $intentMode
             ['role' => 'user',   'content' => $userPrompt],
         ],
         'temperature' => 0, // Deterministic logic for v2
-        'max_tokens'  => 2000,
+        'max_tokens'  => 4096, // Increased from 2000 to prevent truncation in large PRDs
         'response_format' => ['type' => 'json_object'] // Ensure JSON mode
     ]);
 
@@ -428,9 +428,11 @@ function validateSchemaByMode(array $data, string $mode): bool {
         return isset($data['summary']) && 
                (isset($data['clarification_questions']) || isset($data['questions']));
     } else {
-        // v3.3 Schema Requirements
+        // v3.3 Schema Requirements: Resilient to variation in model output keys
         return isset($data['generated_prompts']) && 
-               (isset($data['refined_idea']) || isset($data['refined_problem_statement']));
+               (isset($data['refined_idea']) || 
+                isset($data['refined_problem_statement']) || 
+                isset($data['refined_domain_specification']));
     }
 }
 
