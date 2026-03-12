@@ -127,9 +127,88 @@ $parsedBody = json_decode($rawBody, true) ?? [];
 
 // 3. Sanitize and validate input parameters.
 $input      = trim($parsedBody['text'] ?? $_POST['text'] ?? '');
-$mode       = $parsedBody['mode'] ?? 'clarify'; 
+$mode       = $parsedBody['mode'] ?? $_GET['mode'] ?? 'clarify'; 
 $answers    = $parsedBody['answers'] ?? [];
 $intentMode = $parsedBody['intent_mode'] ?? 'auto';
+
+// Ensure /cache and /logs directories exist and are writable.
+ensureDirectory(CACHE_DIR);
+ensureDirectory(LOG_DIR);
+
+// ── Special Handling for Non-Analysis Modes ───────────────────────────────────
+
+if ($mode === 'simulate') {
+    $data = $parsedBody['data'] ?? [];
+    $results = [];
+    $thresholds = [0.70, 0.55, 0.45];
+    $originalDc = $data['validation_logic']['domain_consistency_computed'] ?? 100;
+    $originalScore = $data['confidence_breakdown']['final_score'] ?? 100;
+
+    foreach ($thresholds as $t) {
+        $simulatedDc = round($originalDc * ($t / 0.6) * 10) / 10;
+        $simulatedScore = min(100, max(0, $originalScore + ($simulatedDc - $originalDc) * 0.3));
+        $results[] = [
+            'threshold' => $t,
+            'domain_consistency' => $simulatedDc,
+            'confidence_delta' => $simulatedScore - $originalScore,
+            'final_score' => $simulatedScore
+        ];
+    }
+    logRequest(getClientIp(), 0, 'SUCCESS_SIMULATE');
+    echo json_encode($results);
+    exit;
+}
+
+if ($mode === 'execute-tool') {
+    $tool = $parsedBody['tool'] ?? '';
+    $prompt = $parsedBody['prompt'] ?? '';
+    $toolAllowlist = ['chatgpt', 'copilot', 'plan', 'test-scaffold', 'claude'];
+    $toolSystemPrompts = [
+        'chatgpt' => 'You are an expert software architect. Analyze the spec and provide architectural guidance.',
+        'copilot' => 'You are a senior engineer. Generate production-ready code scaffolding.',
+        'claude' => 'You are a senior systems architect. Provide high-level design patterns and robust integration strategies.',
+        'plan' => 'You are a tech lead. Generate a detailed implementation plan. Return ONLY valid JSON: { "tasks": [{ "id": "string", "title": "string", "hours": number, "depends_on": "string[]", "ci_check": "string" }], "total_hours": number, "phases": ["string"] }',
+        'test-scaffold' => 'You are a QA engineer. Generate comprehensive unit test scaffolding.'
+    ];
+
+    if (!in_array($tool, $toolAllowlist)) {
+        jsonError('Unsupported tool.', 400);
+    }
+
+    $systemMsg = $toolSystemPrompts[$tool] ?? 'You are a senior technical advisor.';
+    $payload = json_encode([
+        'model' => 'llama-3.3-70b-versatile',
+        'messages' => [
+            ['role' => 'system', 'content' => $systemMsg],
+            ['role' => 'user', 'content' => $prompt]
+        ],
+        'temperature' => 0
+    ]);
+
+    $ch = curl_init(GROQ_ENDPOINT);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . GROQ_API_KEY,
+        ],
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) jsonError('Groq API Error during tool execution.', 500);
+    $env = json_decode($response, true);
+    $toolResponse = $env['choices'][0]['message']['content'] ?? 'No response from model.';
+    
+    logRequest(getClientIp(), strlen($prompt), 'SUCCESS_TOOL');
+    echo json_encode(['ok' => true, 'tool' => $tool, 'toolResponse' => $toolResponse]);
+    exit;
+}
+
+// ── Standard Analysis Request Pipeline ────────────────────────────────────────
 
 if (empty($input)) {
     jsonError('Input text is required.');
